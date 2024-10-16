@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: white;
+  background-color: #f0f8ff;
+  background-position: center;
+  background-size: cover;
+}
+
+.container {
+  max-width: 600px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  border-radius: 10px;
+  text-align: center;
+}
+
+h1 {
+  color: #6be0a0;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 18px;
+}

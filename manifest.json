@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Tabspire",
+  "description": "Tabspire delivers daily inspiration with a random scripture and beautiful background each time you open a new tab.",
+  "version": "1.0",
+  "action": {},
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": ["https://api.unsplash.com/"]
+}
