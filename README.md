@@ -1,66 +1,136 @@
 # Tabspire
 
-Tabspire is a Chrome extension that delivers daily inspiration by displaying a random scripture or motivational message along with a beautiful background image every time you open a new tab. Customize your experience with future features and designs that keep you inspired throughout the day.
+Tabspire is a Chrome extension that delivers daily inspiration with random scripture verses and beautiful background images each time you open a new tab. Built with React and TypeScript, it provides a serene and uplifting browsing experience.
 
 ## Features
 
-- Displays a random "In Him Scripture" each time a new tab is opened.
-- Fetches beautiful background images from the Unsplash API.
-- Easy customization for future enhancements.
+- 📖 Random inspirational Bible verses
+- 🖼️ Beautiful nature backgrounds from Unsplash
+- 🚀 Fast loading with local caching
+- 📱 Responsive design
+- 🔄 Daily content refresh
+- 💻 Offline support
 
-## Technologies Used
+## Prerequisites
 
-- **HTML** for structure
-- **CSS** for styling
-- **JavaScript** for functionality
-- **Babel** for transpiling modern JavaScript
-- **Webpack** for module bundling
-- **Unsplash API** for background images
+Before you begin, ensure you have:
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- A Chrome browser
+- API keys for:
+  - [Unsplash API](https://unsplash.com/developers)
+  - [API.Bible](https://scripture.api.bible/)
 
 ## Installation
 
-1. **Clone the Repository**
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/tabspire.git
+cd tabspire
+```
 
-   ```bash
-   git clone https://github.com/yourusername/tabspire.git
-   cd tabspire
-   ```
+2. Install dependencies:
+```bash
+npm install
+```
 
-2. **Install Dependencies**
+3. Create a `.env` file in the root directory:
+```bash
+REACT_APP_UNSPLASH_ACCESS_KEY=your_unsplash_api_key_here
+REACT_APP_BIBLE_API_KEY=your_bible_api_key_here
+```
 
-   ```bash
-   npm install
-   ```
+## Development
 
-3. **Create a .env file**
+To run the extension in development mode:
 
-   ```bash
-   UNSPLASH_API_KEY=your_unsplash_api_key_here
-   ```
+1. Start the development server:
+```bash
+npm start
+```
 
-4. **Build the Project**
+2. Build the extension:
+```bash
+npm run build:extension
+```
 
-   ```bash
-       npx webpack --config webpack.config.js
-   ```
+3. Load the extension in Chrome:
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable "Developer mode" in the top right
+   - Click "Load unpacked"
+   - Select the `build` directory from your project
 
-5. **Load the Extension in Chrome**
-   ```
-   Open Chrome and go to chrome://extensions/.
-   Enable "Developer mode" in the top right corner.
-   Click on "Load unpacked" and select the directory where your project is located.
-   ```
+## Building for Production
 
-**Usage**
-Every time you open a new tab, Tabspire will display a random scripture along with a beautiful background image. Enjoy your daily dose of inspiration!
+1. Build the extension:
+```bash
+npm run build:extension
+```
 
-**Contributing**
-Contributions are welcome! If you have suggestions or improvements, please open an issue or submit a pull request.
+2. The `build` directory will contain your extension files
 
-**License**
-This project is licensed under the MIT License. See the LICENSE file for details.
+3. To create a ZIP file for the Chrome Web Store:
+```bash
+cd build
+zip -r ../tabspire.zip *
+```
 
-**Acknowledgments**
-Unsplash for providing beautiful images.
-Babel for helping us use modern JavaScript features.
-Webpack for module bundling.
+## Project Structure
+
+```
+tabspire/
+├── src/
+│   ├── App.tsx           # Main application component
+│   ├── App.css           # Styles for the app
+│   ├── index.tsx         # Entry point
+│   └── icon.svg          # Source icon file
+├── public/
+│   └── index.html        # HTML template
+├── icons/                # Generated extension icons
+├── scripts/
+│   └── generate-icons.js # Icon generation script
+├── manifest.json         # Extension manifest
+├── package.json         # Project dependencies
+└── README.md            # This file
+```
+
+## API Usage
+
+The extension uses two main APIs:
+
+1. **Unsplash API**
+   - Used for fetching beautiful nature backgrounds
+   - Rate limited to 50 requests per hour
+   - Images are cached locally
+
+2. **API.Bible**
+   - Provides Bible verses and references
+   - Supports multiple translations
+   - Currently using ESV translation
+
+## Local Storage
+
+The extension uses Chrome's storage API to:
+- Cache API responses
+- Reduce API calls
+- Provide offline functionality
+- Store daily verses and backgrounds
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [React](https://reactjs.org/)
+- [Unsplash](https://unsplash.com/)
+- [API.Bible](https://scripture.api.bible/)
+- [Chrome Extensions Documentation](https://developer.chrome.com/docs/extensions/)
