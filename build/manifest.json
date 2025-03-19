@@ -22,6 +22,5 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "author": "Your Name",
-  "homepage_url": "https://github.com/yourusername/tabspire",
-  "offline_enabled": true
+  "homepage_url": "https://github.com/yourusername/tabspire"
 }
