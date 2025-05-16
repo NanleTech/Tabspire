@@ -11,9 +11,6 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": [
-    "storage"
-  ],
   "host_permissions": [
     "https://api.unsplash.com/*",
     "https://api.scripture.api.bible/*"
@@ -23,5 +20,8 @@
   },
   "author": "Your Name",
   "homepage_url": "https://github.com/yourusername/tabspire",
-  "offline_enabled": true
+  "offline_enabled": true,
+  "permissions": [
+    "clipboardWrite"
+  ]
 }
