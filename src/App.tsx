@@ -6,12 +6,16 @@ import ScriptureDisplay from './components/scripture-display';
 import Attribution from './components/attribution';
 import Controls from './components/controls';
 
+const APP_VERSION = '1.0.0'; // Update this on each deploy
+const CACHE_KEY = 'unsplash_photo_cache';
+
 function App() {
   const { scripture, loading: scriptureLoading, fetchScripture } = useScripture();
   const { photo, loading: photoLoading, fetchPhoto } = useUnsplash();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [fontSize, setFontSize] = useState(2); // in rem
   const [loading, setLoading] = useState(true);
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   const handleRefresh = useCallback(() => {
     setLoading(true);
@@ -26,8 +30,25 @@ function App() {
     setFontSize((prev) => Math.max(1.5, Math.min(3, prev + delta)));
   };
 
+  // Version detection logic
   useEffect(() => {
-    Promise.all([fetchScripture(), fetchPhoto()]).finally(() => setLoading(false));
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const { version } = JSON.parse(cached);
+        if (version && version !== APP_VERSION) {
+          setShowUpdateBanner(true);
+        }
+      } catch {}
+    }
+  }, []);
+
+  const onRefreshApp = () => {
+    window.location.reload();
+  };
+
+  useEffect(() => {
+    Promise.all([fetchScripture()]).finally(() => setLoading(false));
     // eslint-disable-next-line
   }, []);
 
@@ -51,6 +72,8 @@ function App() {
         isDarkMode={isDarkMode}
         onFontSizeChange={adjustFontSize}
         shareText={shareText}
+        showUpdateBanner={showUpdateBanner}
+        onRefreshApp={onRefreshApp}
       />
       <div className="content">
         <ScriptureDisplay scripture={scripture} />

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tabspire",
-  "version": "1.0.0",
+  "version": "1.1.5",
   "description": "Tabspire delivers daily inspiration with a random scripture and beautiful background each time you open a new tab.",
   "icons": {
     "16": "icons/icon16.png",

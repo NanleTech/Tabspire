@@ -32,5 +32,7 @@ zip -r ../tabspire.zip . -x "*.DS_Store"
 cd ..
 rm -rf extension-package
 
+npm run build:extension
+
 echo "✅ Build complete! Extension packaged as tabspire.zip"
 echo "📦 You can now upload tabspire.zip to the Chrome Web Store" 

@@ -19,4 +19,10 @@ export interface UnsplashPhoto {
       html: string;
     };
   };
+}
+
+export interface UnsplashPhotoCache {
+  photo: UnsplashPhoto;
+  timestamp: number;
+  version: string;
 } 

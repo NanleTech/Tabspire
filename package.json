@@ -1,6 +1,6 @@
 {
   "name": "tabspire",
-  "version": "1.0.0",
+  "version": "1.1.5",
   "private": true,
   "dependencies": {
     "@types/chrome": "^0.0.246",
@@ -20,7 +20,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "generate-icons": "node scripts/generate-icons.js",
-    "build:extension": "npm run generate-icons && npm run build && npm run copy:extension",
+    "bump": "npm version patch --no-git-tag-version",
+    "sync-manifest": "node scripts/sync-manifest-version.js",
+    "build:extension": "npm run bump && npm run sync-manifest && npm run generate-icons && npm run build && npm run copy:extension",
     "copy:extension": "cp manifest.json build/ && mkdir -p build/icons && cp -r icons/* build/icons/"
   },
   "eslintConfig": {
