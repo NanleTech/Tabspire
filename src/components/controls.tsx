@@ -8,6 +8,10 @@ interface ControlsProps {
   shareText: string;
   showUpdateBanner?: boolean;
   onRefreshApp?: () => void;
+  onLanguageChange: (lang: string) => void;
+  language: string;
+  fontStyle: string;
+  onFontStyleChange: (style: string) => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -18,11 +22,11 @@ const Controls: React.FC<ControlsProps> = ({
   shareText,
   showUpdateBanner = false,
   onRefreshApp,
+  onLanguageChange,
+  language,
+  fontStyle,
+  onFontStyleChange,
 }) => {
-  const encodedText = encodeURIComponent(shareText);
-  const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-  const telegramUrl = `https://t.me/share/url?text=${encodedText}`;
-
   return (
     <>
       {showUpdateBanner && (
@@ -79,6 +83,28 @@ const Controls: React.FC<ControlsProps> = ({
             A+
           </button>
         </div>
+        <select
+          value={language}
+          onChange={e => onLanguageChange(e.target.value)}
+          className="control-button"
+          title="Select Language"
+          style={{ minWidth: 90 }}
+        >
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+        </select>
+        <select
+          value={fontStyle}
+          onChange={e => onFontStyleChange(e.target.value)}
+          className="control-button"
+          title="Font Style"
+          style={{ minWidth: 90 }}
+        >
+          <option value="serif">Serif</option>
+          <option value="sans-serif">Sans Serif</option>
+          <option value="monospace">Monospace</option>
+          <option value="cursive">Cursive</option>
+        </select>
       </div>
     </>
   );

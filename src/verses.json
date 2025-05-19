@@ -1,0 +1,22 @@
+[
+  { "bookId": "JHN", "chapterId": "3", "verseId": "16" },
+  { "bookId": "PSA", "chapterId": "23", "verseId": "1" },
+  { "bookId": "PHP", "chapterId": "4", "verseId": "13" },
+  { "bookId": "JER", "chapterId": "29", "verseId": "11" },
+  { "bookId": "ROM", "chapterId": "8", "verseId": "28" },
+  { "bookId": "PSA", "chapterId": "46", "verseId": "1" },
+  { "bookId": "ISA", "chapterId": "41", "verseId": "10" },
+  { "bookId": "MAT", "chapterId": "6", "verseId": "33" },
+  { "bookId": "HEB", "chapterId": "11", "verseId": "1" },
+  { "bookId": "2CO", "chapterId": "5", "verseId": "7" },
+  { "bookId": "PRO", "chapterId": "3", "verseId": "5" },
+  { "bookId": "JOS", "chapterId": "1", "verseId": "9" },
+  { "bookId": "ISA", "chapterId": "40", "verseId": "31" },
+  { "bookId": "PSA", "chapterId": "27", "verseId": "1" },
+  { "bookId": "MAT", "chapterId": "11", "verseId": "28" },
+  { "bookId": "ROM", "chapterId": "15", "verseId": "13" },
+  { "bookId": "1CO", "chapterId": "16", "verseId": "13" },
+  { "bookId": "JAM", "chapterId": "1", "verseId": "12" },
+  { "bookId": "1PE", "chapterId": "5", "verseId": "7" },
+  { "bookId": "PSA", "chapterId": "34", "verseId": "8" }
+] 
