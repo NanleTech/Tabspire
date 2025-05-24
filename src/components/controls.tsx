@@ -12,6 +12,9 @@ interface ControlsProps {
   language: string;
   fontStyle: string;
   onFontStyleChange: (style: string) => void;
+  onToggleHistoryPanel: () => void;
+  showHistoryPanel: boolean;
+  theme: string;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -26,6 +29,9 @@ const Controls: React.FC<ControlsProps> = ({
   language,
   fontStyle,
   onFontStyleChange,
+  onToggleHistoryPanel,
+  showHistoryPanel,
+  theme,
 }) => {
   return (
     <>
@@ -49,6 +55,16 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
       )}
       <div className="controls">
+        {theme === 'full' && (
+          <button
+            onClick={onToggleHistoryPanel}
+            className="control-button"
+            title={showHistoryPanel ? 'Hide History' : 'Show History'}
+            style={{ fontSize: 18, background: showHistoryPanel ? '#38bdf8' : undefined, color: showHistoryPanel ? '#fff' : undefined }}
+          >
+            <span role="img" aria-label="history">🕒</span>
+          </button>
+        )}
         <button onClick={onRefresh} className="control-button" title="New Verse">
           ↻
         </button>
@@ -92,6 +108,29 @@ const Controls: React.FC<ControlsProps> = ({
         >
           <option value="en">English</option>
           <option value="es">Spanish</option>
+          <option value="hat">Haitian Creole</option>
+          <option value="hau">Hausa</option>
+          <option value="hbo">Hebrew (Ancient)</option>
+          <option value="heb">Hebrew (Modern)</option>
+          <option value="hi">Hindi</option>
+          <option value="hrv">Croatian</option>
+          <option value="hun">Hungarian</option>
+          <option value="ibo">Igbo</option>
+          <option value="ind">Indonesian</option>
+          <option value="isl">Icelandic</option>
+          <option value="ita">Italian</option>
+          <option value="pol">Polish</option>
+          <option value="por">Portuguese</option>
+          <option value="swh">Swahili</option>
+          <option value="vie">Vietnamese</option>
+          <option value="yor">Yoruba</option>
+          <option value="ukr">Ukrainian</option>
+          <option value="lug">Luganda</option>
+          <option value="lin">Lingala</option>
+          <option value="nya">Chichewa</option>
+          <option value="nob">Norwegian</option>
+          <option value="sna">Shona</option>
+          <option value="twi">Twi</option>
         </select>
         <select
           value={fontStyle}

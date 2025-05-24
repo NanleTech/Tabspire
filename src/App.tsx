@@ -5,19 +5,40 @@ import { useUnsplash } from './hooks/useUnsplash';
 import ScriptureDisplay from './components/scripture-display';
 import Attribution from './components/attribution';
 import Controls from './components/controls';
+import ThemeSelectModal from './components/ThemeSelectModal';
+import Footer from './components/Footer';
+import BookmarksRow from './components/BookmarksRow';
+import HistoryPanel from './components/HistoryPanel';
 
 const APP_VERSION = '1.0.0'; // Update this on each deploy
 const CACHE_KEY = 'unsplash_photo_cache';
 
 const LANGUAGE_BIBLE_IDS: Record<string, string> = {
-  en: 'de4e12af7f28f599-02', // ESV
-  es: '592420522e16049f-01', // RVR1960
-  fr: 'f5b73c3b260c01b9-01', // LSG
-  de: 'c5da6c63581eafc0-01', // German (LUTH1545)
-  pt: 'bba9f40183526463-01', // Portuguese (ARC)
-  zh: 'c315fa9c1e7bafeb-01', // Chinese (CUVS)
-  ru: 'b9f7b3b3c7d5c2e9-01', // Russian (RUSV)
-  hi: 'f8eecf3a1c6b4b68-01', // Hindi (IRV-HIN)
+  en: 'de4e12af7f28f599-02', // English (ESV)
+  es: '592420522e16049f-01', // Spanish (Reina Valera 1909)
+  hat: 'hatbsa', // Haitian Creole (Bib Sen An)
+  hau: '0ab0c764d56a715d-01', // Hausa (Biblica Open Hausa Contemporary Bible 2020)
+  hbo: '0b262f1ed7f084a6-01', // Hebrew, Ancient (Westminister Leningrad Codex)
+  heb: 'a8a97eebae3c98e4-01', // Hebrew, Modern (Biblica Open Hebrew Living New Testament 2009)
+  hi: '1e8ab327edbce67f-01', // Hindi (Indian Revised Version Hindi - 2019)
+  hrv: 'b00de703b3d02a5a-01', // Croatian (Biblica Open Croatian Living New Testament 2000)
+  hun: 'fcfc25677b0a53c9-01', // Hungarian (Biblica Open Hungarian New Testament)
+  ibo: 'a36fc06b086699f1-02', // Igbo (Biblica Open Igbo Contemporary Bible 2020)
+  ind: '2dd568eeff29fb3c-02', // Indonesian (Plain Indonesian Translation)
+  isl: 'e4581313051f2861-01', // Icelandic (Biblica Open Icelandic Contemporary NT and Psalms)
+  ita: '41f25b97f468e10b-01', // Italian (Diodati Bible 1885)
+  pol: 'fbb8b0e1943b417c-01', // Polish (Biblica Open Polish Living New Testament 2016)
+  por: 'd63894c8d9a7a503-01', // Portuguese (Biblia Livre Para Todos)
+  swh: '611f8eb23aec8f13-01', // Swahili (Biblica Open Kiswahili Contemporary Version)
+  vie: '5cc7093967a0a392-01', // Vietnamese (Biblica Open Vietnamese Contemporary Bible 2015)
+  yor: 'b8d1feac6e94bd74-01', // Yoruba (Biblica Open Yoruba Contemporary Bible 2017)
+  ukr: '6c696cd1d82e2723-03', // Ukrainian (Biblica Open New Ukrainian Translation 2022)
+  lug: 'f276be3571f516cb-01', // Luganda (Biblica Open Luganda Contemporary Bible 2014)
+  lin: 'ac6b6b7cd1e93057-01', // Lingala (Biblica Open Lingala Contemporary Bible 2020)
+  nya: '43247c35dbe56e1c-01', // Chichewa (Biblica Open God's Word in Contemporary Chichewa 2016)
+  nob: '246ad95eade0d0a1-01', // Norwegian (Biblica Open Norwegian Living New Testament)
+  sna: 'e8d99085dcb83ab5-01', // Shona (Biblica Open Shona Contemporary Bible)
+  twi: 'b6aee081108c0bc6-01', // Twi (Biblica Open Akuapem Twi Contemporary Bible 2020)
 };
 
 function App() {
@@ -31,6 +52,11 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
   const [fontStyle, setFontStyle] = useState(() => localStorage.getItem('tabspire_font_style') || 'serif');
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
+  const [bookmarkLinks, setBookmarkLinks] = useState<any[]>([]);
+  const [recentHistory, setRecentHistory] = useState<any[]>([]);
+  const [theme, setTheme] = useState(() => localStorage.getItem('tabspire_theme') || '');
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const handleRefresh = useCallback(() => {
     setLoading(true);
@@ -98,6 +124,43 @@ function App() {
     // eslint-disable-next-line
   }, [bibleId]);
 
+  // Fetch first 5 bookmarks (flattened)
+  useEffect(() => {
+    if (chrome.bookmarks && chrome.bookmarks.getTree) {
+      chrome.bookmarks.getTree((nodes) => {
+        // Flatten bookmarks tree
+        const flatten = (arr: any[]): any[] => arr.reduce((acc, node) => {
+          if (node.url) acc.push(node);
+          if (node.children) acc.push(...flatten(node.children));
+          return acc;
+        }, []);
+        const allBookmarks = flatten(nodes);
+        console.log('Fetched bookmarks:', allBookmarks);
+        setBookmarkLinks(allBookmarks.slice(0, 5));
+      });
+    }
+  }, []);
+
+  // Fetch recent history (10 items)
+  useEffect(() => {
+    if (chrome.history && chrome.history.search) {
+      chrome.history.search({ text: '', maxResults: 10 }, (historyItems) => {
+        setRecentHistory(historyItems);
+      });
+    }
+  }, []);
+
+  // Show modal if no theme is selected
+  useEffect(() => {
+    if (!theme) setShowThemeModal(true);
+  }, [theme]);
+
+  const handleThemeSelect = (selectedTheme: string) => {
+    setTheme(selectedTheme);
+    localStorage.setItem('tabspire_theme', selectedTheme);
+    setShowThemeModal(false);
+  };
+
   if (loading || photoLoading) {
     return <div className="loading">Loading...</div>;
   }
@@ -112,6 +175,7 @@ function App() {
         '--font-size': `${fontSize}rem`,
       } as React.CSSProperties}
     >
+      {showThemeModal && <ThemeSelectModal onSelect={handleThemeSelect} />}
       <Controls
         onRefresh={handleRefresh}
         onToggleTheme={toggleTheme}
@@ -124,11 +188,19 @@ function App() {
         language={language}
         fontStyle={fontStyle}
         onFontStyleChange={handleFontStyleChange}
+        onToggleHistoryPanel={() => setShowHistoryPanel(v => !v)}
+        showHistoryPanel={showHistoryPanel}
+        theme={theme}
       />
+      {/* History panel (only for full theme) */}
+      <HistoryPanel recentHistory={recentHistory} visible={theme === 'full' && showHistoryPanel} />
       <div className="content">
         <ScriptureDisplay scripture={scripture} fontStyle={fontStyle} />
+        {/* Bookmarks row only for full theme */}
+        {theme === 'full' && <BookmarksRow bookmarks={bookmarkLinks} />}
       </div>
       <Attribution photo={photo} />
+      <Footer />
     </div>
   );
 }

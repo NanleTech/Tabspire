@@ -12,7 +12,7 @@ if (!fs.existsSync(iconDir)) {
 
 // Generate icons for each size
 sizes.forEach(size => {
-  sharp(path.join(__dirname, '../src/icon.svg'))
+  sharp(path.join(__dirname, '../tabspire.png'))
     .resize(size, size)
     .png()
     .toFile(path.join(iconDir, `icon${size}.png`))
