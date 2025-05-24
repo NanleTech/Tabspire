@@ -33,7 +33,7 @@ export function useScripture(bibleId: string) {
         );
         const data = await response.json();
         setScripture({
-          text: data.data.content.replace(/<[^>]*>/g, ''),
+          text: data.data.content.replace(/<[^>]*>/g, '').replace(/^\d+\s*/, ''),
           reference: data.data.reference,
         });
         return verse;
