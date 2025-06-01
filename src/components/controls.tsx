@@ -15,6 +15,8 @@ interface ControlsProps {
   onToggleHistoryPanel: () => void;
   showHistoryPanel: boolean;
   theme: string;
+  settingsButton?: React.ReactNode;
+  onShareImage?: () => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -32,6 +34,8 @@ const Controls: React.FC<ControlsProps> = ({
   onToggleHistoryPanel,
   showHistoryPanel,
   theme,
+  settingsButton,
+  onShareImage,
 }) => {
   return (
     <>
@@ -72,7 +76,9 @@ const Controls: React.FC<ControlsProps> = ({
           className="control-button"
           title="Share"
           onClick={async () => {
-            if (navigator.share) {
+            if (onShareImage) {
+              onShareImage();
+            } else if (navigator.share) {
               try {
                 await navigator.share({ text: shareText });
               } catch {}
@@ -99,51 +105,7 @@ const Controls: React.FC<ControlsProps> = ({
             A+
           </button>
         </div>
-        <select
-          value={language}
-          onChange={e => onLanguageChange(e.target.value)}
-          className="control-button"
-          title="Select Language"
-          style={{ minWidth: 90 }}
-        >
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="hat">Haitian Creole</option>
-          <option value="hau">Hausa</option>
-          <option value="hbo">Hebrew (Ancient)</option>
-          <option value="heb">Hebrew (Modern)</option>
-          <option value="hi">Hindi</option>
-          <option value="hrv">Croatian</option>
-          <option value="hun">Hungarian</option>
-          <option value="ibo">Igbo</option>
-          <option value="ind">Indonesian</option>
-          <option value="isl">Icelandic</option>
-          <option value="ita">Italian</option>
-          <option value="pol">Polish</option>
-          <option value="por">Portuguese</option>
-          <option value="swh">Swahili</option>
-          <option value="vie">Vietnamese</option>
-          <option value="yor">Yoruba</option>
-          <option value="ukr">Ukrainian</option>
-          <option value="lug">Luganda</option>
-          <option value="lin">Lingala</option>
-          <option value="nya">Chichewa</option>
-          <option value="nob">Norwegian</option>
-          <option value="sna">Shona</option>
-          <option value="twi">Twi</option>
-        </select>
-        <select
-          value={fontStyle}
-          onChange={e => onFontStyleChange(e.target.value)}
-          className="control-button"
-          title="Font Style"
-          style={{ minWidth: 90 }}
-        >
-          <option value="serif">Serif</option>
-          <option value="sans-serif">Sans Serif</option>
-          <option value="monospace">Monospace</option>
-          <option value="cursive">Cursive</option>
-        </select>
+        {settingsButton}
       </div>
     </>
   );
