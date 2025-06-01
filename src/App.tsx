@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import './App.css';
 import { useScripture } from './hooks/useScripture';
 import { useUnsplash } from './hooks/useUnsplash';
@@ -13,6 +13,7 @@ import AudioBiblePlayer from './components/AudioBiblePlayer';
 import SettingsPanel from './components/SettingsPanel';
 import icon from './icon.svg';
 import html2canvas from 'html2canvas';
+import VerseSearchBar from './components/VerseSearchBar';
 
 const APP_VERSION = '1.0.0'; // Update this on each deploy
 const CACHE_KEY = 'unsplash_photo_cache';
@@ -351,6 +352,14 @@ function App() {
     return `${date} · ${time}`;
   }
 
+  // Handler to jump to a verse from search
+  const handleJumpToVerse = (book: string, chapter: string, verse: string) => {
+    // For now, just fetchScripture with the reference (API integration can be improved)
+    fetchScripture({ bookId: book, chapterId: chapter, verseId: verse }, bibleId).then((verseRef) => {
+      if (verseRef) setCurrentVerseRef(verseRef);
+    });
+  };
+
   if (loading || photoLoading) {
     return <div className="loading">Loading...</div>;
   }
@@ -436,6 +445,7 @@ function App() {
       {/* History panel (only for full theme) */}
       <HistoryPanel recentHistory={recentHistory} visible={theme === 'full' && showHistoryPanel} />
       <div className="content">
+        <VerseSearchBar onSelect={handleJumpToVerse} bibleId={bibleId} />
         {showDateTime && (
           <div
             style={{
