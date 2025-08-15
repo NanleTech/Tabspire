@@ -1,10 +1,10 @@
-import React from 'react';
+import type { ThemeType } from '../enums';
 
 interface ThemeSelectModalProps {
-  onSelect: (theme: string) => void;
+  onSelect: (theme: ThemeType) => void;
 }
 
-const themes = [
+const themes: Array<{ key: ThemeType; name: string; description: string }> = [
   {
     key: 'minimal',
     name: 'Minimal',
@@ -44,6 +44,7 @@ const ThemeSelectModal: React.FC<ThemeSelectModalProps> = ({ onSelect }) => {
           {themes.map(theme => (
             <button
               key={theme.key}
+              type="button"
               onClick={() => onSelect(theme.key)}
               style={{
                 padding: '16px 20px',
@@ -61,6 +62,14 @@ const ThemeSelectModal: React.FC<ThemeSelectModalProps> = ({ onSelect }) => {
                 e.currentTarget.style.color = '#fff';
               }}
               onMouseOut={e => {
+                e.currentTarget.style.background = '#f8fafc';
+                e.currentTarget.style.color = '#222';
+              }}
+              onFocus={e => {
+                e.currentTarget.style.background = '#38bdf8';
+                e.currentTarget.style.color = '#fff';
+              }}
+              onBlur={e => {
                 e.currentTarget.style.background = '#f8fafc';
                 e.currentTarget.style.color = '#222';
               }}

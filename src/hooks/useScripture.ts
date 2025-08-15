@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Scripture, BibleVerse } from '../types';
-import verses from '../verses.json';
+import type { Scripture, BibleVerse } from '../types';
+import verses from '../data/verses.json';
+import { getRandomFallbackVerse } from '../data/fallback-verses';
 
-const getRandomVerse = (): BibleVerse => {
+const getRandomVerse = () => {
   return verses[Math.floor(Math.random() * verses.length)];
 };
 
@@ -38,11 +39,9 @@ export function useScripture(bibleId: string) {
         });
         return verse;
       } catch (error) {
-        setScripture({
-          text:
-            'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.',
-          reference: 'John 3:16',
-        });
+        // Use a random fallback verse instead of always showing John 3:16
+        const fallbackVerse = getRandomFallbackVerse();
+        setScripture(fallbackVerse);
         return undefined;
       } finally {
         setLoading(false);

@@ -1,42 +1,37 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { BUILTIN_BACKGROUNDS, SAMPLE_VERSE, ThemeType, FontStyle } from '../enums';
 
-interface SettingsPanelProps {
+interface SettingsPanelPropsUpdated {
   open: boolean;
   onClose: () => void;
   language: string;
   onLanguageChange: (lang: string) => void;
-  fontStyle: string;
-  onFontStyleChange: (style: string) => void;
+  fontStyle: FontStyle;
+  onFontStyleChange: (style: FontStyle) => void;
   voices: SpeechSynthesisVoice[];
   selectedVoice: string;
   onVoiceChange: (voiceURI: string) => void;
-  theme: string;
-  onThemeChange: (theme: string) => void;
+  theme: ThemeType;
+  onThemeChange: (theme: ThemeType) => void;
   customBackground: { type: 'color' | 'gradient' | 'image' | ''; value: string };
-  onSetBackground: (bg: string, type: 'color' | 'gradient' | 'image') => void;
+  onSetBackground: (bg: string, type: 'color' | 'gradient' | 'image' | '') => void;
   onResetBackground: () => void;
   onUploadBackground: (file: File) => void;
   showDateTime: boolean;
   onShowDateTimeChange: (val: boolean) => void;
+  elevenLabsVoiceId?: string;
+  onElevenLabsVoiceChange?: (voiceId: string) => void;
 }
 
-const sampleVerse = {
-  text: 'For God so loved the world, that he gave his only Son...',
-  reference: 'John 3:16',
-};
+interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  labels?: {
+    accent?: string;
+  };
+}
 
-const BUILTIN_BACKGROUNDS = [
-  { type: 'color', value: '#1a1a1a' },
-  { type: 'color', value: '#f8fafc' },
-  { type: 'color', value: '#38bdf8' },
-  { type: 'gradient', value: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)' },
-  { type: 'gradient', value: 'linear-gradient(135deg, #fbbf24 0%, #f472b6 100%)' },
-  { type: 'image', value: '/images/1.jpg' },
-  { type: 'image', value: '/images/2.jpg' },
-  { type: 'image', value: '/images/3.jpg' },
-];
-
-const SettingsPanel: React.FC<SettingsPanelProps> = ({
+const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
   open,
   onClose,
   language,
@@ -54,11 +49,37 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onUploadBackground,
   showDateTime,
   onShowDateTimeChange,
+  elevenLabsVoiceId,
+  onElevenLabsVoiceChange,
 }) => {
   const [previewVoice, setPreviewVoice] = useState<string>(selectedVoice);
+  const [elevenLabsVoices, setElevenLabsVoices] = useState<ElevenLabsVoice[]>([]);
+  const [elevenLabsLoading, setElevenLabsLoading] = useState(false);
+  const [elevenLabsError, setElevenLabsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const fetchVoices = async () => {
+      setElevenLabsLoading(true);
+      setElevenLabsError(null);
+      try {
+        const apiKey = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
+        const resp = await fetch('https://api.elevenlabs.io/v1/voices', {
+          headers: { 'xi-api-key': apiKey },
+        });
+        if (!resp.ok) throw new Error('Failed to fetch voices');
+        const data = await resp.json();
+        setElevenLabsVoices(data.voices || []);
+      } catch (error) {
+        setElevenLabsError('Could not load ElevenLabs voices.');
+      }
+      setElevenLabsLoading(false);
+    };
+    fetchVoices();
+  }, [open]);
 
   const handleVoicePreview = () => {
-    const utterance = new window.SpeechSynthesisUtterance(`${sampleVerse.text} - ${sampleVerse.reference}`);
+    const utterance = new window.SpeechSynthesisUtterance(`${SAMPLE_VERSE.text} - ${SAMPLE_VERSE.reference}`);
     const voice = voices.find(v => v.voiceURI === previewVoice);
     if (voice) utterance.voice = voice;
     utterance.lang = voice?.lang || 'en';
@@ -89,7 +110,29 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         textAlign: 'left',
         position: 'relative',
       }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: '#eee', border: 'none', fontSize: 26, cursor: 'pointer', color: '#333', borderRadius: '50%', width: 36, height: 36, lineHeight: '36px', fontWeight: 700 }} title="Close" aria-label="Close">×</button>
+        <button 
+          type="button"
+          onClick={onClose} 
+          style={{ 
+            position: 'absolute', 
+            top: 16, 
+            right: 16, 
+            background: '#eee', 
+            border: 'none', 
+            fontSize: 26, 
+            cursor: 'pointer', 
+            color: '#333', 
+            borderRadius: '50%', 
+            width: 36, 
+            height: 36, 
+            lineHeight: '36px', 
+            fontWeight: 700 
+          }} 
+          title="Close" 
+          aria-label="Close"
+        >
+          ×
+        </button>
         <h2 style={{marginBottom: 18, textAlign: 'center'}}>Settings</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           <section>
@@ -97,10 +140,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <div style={{ color: '#666', fontSize: 13, marginBottom: 8 }}>Choose a background, upload your own, or use a random Unsplash image.</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
               {/* Built-in backgrounds */}
-              {BUILTIN_BACKGROUNDS.map((bg, i) => (
+              {BUILTIN_BACKGROUNDS.map((bg) => (
                 <button
-                  key={i}
-                  onClick={() => onSetBackground(bg.value, bg.type as 'color' | 'gradient' | 'image')}
+                  key={`${bg.type}-${bg.value}`}
+                  type="button"
+                  onClick={() => onSetBackground(bg.value, bg.type)}
                   style={{
                     width: 48,
                     height: 48,
@@ -136,7 +180,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   accept="image/*"
                   style={{ display: 'none' }}
                   onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
+                    if (e.target.files?.[0]) {
                       const file = e.target.files[0];
                       const reader = new FileReader();
                       reader.onload = ev => {
@@ -152,6 +196,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               </label>
               {/* Random/Unsplash */}
               <button
+                type="button"
                 onClick={onResetBackground}
                 style={{
                   width: 48,
@@ -211,19 +256,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <section>
             <div style={{ fontWeight: 600, fontSize: 16 }}>Font Style</div>
             <div style={{ color: '#666', fontSize: 13, marginBottom: 6 }}>Change the font used for displaying verses.</div>
-            <select value={fontStyle} onChange={e => onFontStyleChange(e.target.value)} style={{ minWidth: 180, padding: 7, borderRadius: 6 }}>
+            <select value={fontStyle} onChange={e => onFontStyleChange(e.target.value as FontStyle)} style={{ minWidth: 180, padding: 7, borderRadius: 6 }}>
               <option value="serif">Serif</option>
               <option value="sans-serif">Sans Serif</option>
               <option value="monospace">Monospace</option>
               <option value="cursive">Cursive</option>
             </select>
             <div style={{ marginTop: 10, background: '#f8fafc', borderRadius: 6, padding: 10, fontFamily: fontStyle, fontSize: 18, color: '#222', border: '1px solid #e5e7eb' }}>
-              {sampleVerse.text}
+              {SAMPLE_VERSE.text}
             </div>
           </section>
           <section>
             <div style={{ fontWeight: 600, fontSize: 16 }}>Voice for AI Reading</div>
-            <div style={{ color: '#666', fontSize: 13, marginBottom: 6 }}>Select a voice for text-to-speech. <span style={{ color: '#38bdf8', cursor: 'pointer', textDecoration: 'underline' }} onClick={handleVoicePreview}>Preview</span></div>
+            <div style={{ color: '#666', fontSize: 13, marginBottom: 6 }}>Select a voice for text-to-speech. <button 
+              type="button"
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#38bdf8', 
+                cursor: 'pointer', 
+                textDecoration: 'underline',
+                padding: 0,
+                font: 'inherit'
+              }} 
+              onClick={handleVoicePreview}
+            >Preview</button></div>
             <select value={selectedVoice} onChange={e => { onVoiceChange(e.target.value); setPreviewVoice(e.target.value); }} style={{ minWidth: 220, padding: 7, borderRadius: 6 }}>
               {voices.map(voice => (
                 <option key={voice.voiceURI} value={voice.voiceURI}>
@@ -235,7 +292,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <section>
             <div style={{ fontWeight: 600, fontSize: 16 }}>Theme</div>
             <div style={{ color: '#666', fontSize: 13, marginBottom: 6 }}>Switch between minimal and full-featured layouts.</div>
-            <select value={theme} onChange={e => onThemeChange(e.target.value)} style={{ minWidth: 180, padding: 7, borderRadius: 6 }}>
+            <select value={theme} onChange={e => onThemeChange(e.target.value as ThemeType)} style={{ minWidth: 180, padding: 7, borderRadius: 6 }}>
               <option value="minimal">Minimal</option>
               <option value="full">Full</option>
             </select>
@@ -252,6 +309,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               />
               Show date & time
             </label>
+          </section>
+          <section>
+            <div style={{ fontWeight: 600, fontSize: 16 }}>ElevenLabs Voice</div>
+            <div style={{ color: '#666', fontSize: 13, marginBottom: 6 }}>Select a voice for ElevenLabs TTS.</div>
+            {elevenLabsLoading ? (
+              <div style={{ color: '#38bdf8', fontSize: 14 }}>Loading voices...</div>
+            ) : elevenLabsError ? (
+              <div style={{ color: 'red', fontSize: 14 }}>{elevenLabsError}</div>
+            ) : (
+              <select
+                value={elevenLabsVoiceId || ''}
+                onChange={e => onElevenLabsVoiceChange?.(e.target.value)}
+                style={{ minWidth: 220, padding: 7, borderRadius: 6 }}
+              >
+                <option value="">Default</option>
+                {elevenLabsVoices.map((voice: ElevenLabsVoice) => (
+                  <option key={voice.voice_id} value={voice.voice_id}>
+                    {voice.name} ({voice.labels?.accent || 'N/A'})
+                  </option>
+                ))}
+              </select>
+            )}
           </section>
         </div>
       </div>
