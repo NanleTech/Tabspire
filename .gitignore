@@ -21,3 +21,11 @@ Thumbs.db
 
 build/
 tabspire.zip
+
+# Secure signing keys (NEVER commit these!)
+.secure-keys/
+*.pem
+*.key
+
+# Signed extension files
+*.crx
