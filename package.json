@@ -1,56 +1,56 @@
 {
-  "name": "tabspire",
-  "version": "1.1.19",
-  "private": true,
-  "dependencies": {
-    "@types/chrome": "^0.0.246",
-    "@types/node": "^18.0.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "html2canvas": "^1.4.1",
-    "install": "^0.13.0",
-    "react": "^18.2.0",
-    "react-confetti": "^6.4.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "sharp": "^0.32.0",
-    "typescript": "^4.9.5"
-  },
-  "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true INLINE_RUNTIME_CHUNK=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "generate-icons": "node scripts/generate-icons.js",
-    "bump": "npm version patch --no-git-tag-version",
-    "sync-manifest": "node scripts/sync-manifest-version.js",
-    "build:extension": "npm run bump && npm run sync-manifest && npm run generate-icons && npm run build && npm run copy:extension",
-    "copy:extension": "cp manifest.json build/ && mkdir -p build/icons && cp -r icons/* build/icons/",
-    "sign:extension": "node scripts/sign-extension.js",
-    "build:signed": "npm run build:extension && npm run sign:extension",
-    "build:production": "npm run build:signed && npm run create:zip",
-    "create:zip": "cd build && zip -r ../tabspire.zip . && cd .."
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
-  }
+	"name": "tabspire",
+	"version": "1.1.20",
+	"private": true,
+	"dependencies": {
+		"@types/chrome": "^0.0.246",
+		"@types/node": "^18.0.0",
+		"@types/react": "^18.0.0",
+		"@types/react-dom": "^18.0.0",
+		"html2canvas": "^1.4.1",
+		"install": "^0.13.0",
+		"react": "^18.2.0",
+		"react-confetti": "^6.4.0",
+		"react-dom": "^18.2.0",
+		"react-scripts": "5.0.1",
+		"sharp": "^0.32.0",
+		"typescript": "^4.9.5"
+	},
+	"scripts": {
+		"start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
+		"build": "DISABLE_ESLINT_PLUGIN=true INLINE_RUNTIME_CHUNK=false react-scripts build",
+		"test": "react-scripts test",
+		"eject": "react-scripts eject",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"format:check": "biome format .",
+		"generate-icons": "node scripts/generate-icons.js",
+		"bump": "npm version patch --no-git-tag-version",
+		"sync-manifest": "node scripts/sync-manifest-version.js",
+		"build:extension": "npm run bump && npm run sync-manifest && npm run generate-icons && npm run build && npm run copy:extension",
+		"copy:extension": "cp manifest.json build/ && mkdir -p build/icons && cp -r icons/* build/icons/",
+		"sign:extension": "node scripts/sign-extension.js",
+		"build:signed": "npm run build:extension && npm run sign:extension",
+		"build:production": "npm run build:signed && npm run create:zip",
+		"create:zip": "cd build && zip -r ../tabspire.zip . && cd .."
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.10",
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.6",
+		"tailwindcss": "^3.4.17"
+	}
 }

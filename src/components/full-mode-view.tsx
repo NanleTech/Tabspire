@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import Confetti from "react-confetti";
+import { createPortal } from "react-dom";
+import { getMoodVerseForDay, type MoodId, moodOptions } from "../data/mood-verse-library";
 import { usePersistedState } from "../hooks/use-persisted-state";
-import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
-import type { Scripture } from "../types";
-import { getMoodVerseForDay, moodOptions, type MoodId } from "../data/mood-verse-library";
 import { useWindowSize } from "../hooks/use-window-size";
+import type { Scripture } from "../types";
+import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
 
 interface FullModeViewProps {
 	scripture: Scripture | null;
@@ -29,7 +29,7 @@ const defaultGoals: GoalItem[] = [
 ];
 
 const FullModeView: React.FC<FullModeViewProps> = ({
-	scripture: _scripture,
+	scripture,
 	onPlay,
 	onRefresh,
 	onOpenDevotional,
@@ -42,7 +42,10 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 		year: "numeric",
 	});
 	const [goals] = usePersistedState<GoalItem[]>("tabspire_full_goals", defaultGoals);
-	const [selectedMood, setSelectedMood] = usePersistedState<MoodId>("tabspire_full_mood", "peaceful");
+	const [selectedMood, setSelectedMood] = usePersistedState<MoodId>(
+		"tabspire_full_mood",
+		"peaceful",
+	);
 	const [showMoodBurst, setShowMoodBurst] = useState(false);
 	const { width, height } = useWindowSize();
 	const totalCurrent = goals.reduce((sum, goal) => sum + goal.current, 0);
@@ -51,6 +54,7 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 	const overviewGoals = goals.slice(0, 2);
 	const moodVerse = getMoodVerseForDay(selectedMood);
 	const moodScripture: Scripture = { text: moodVerse.text, reference: moodVerse.reference };
+	const anchorScripture = scripture?.text?.trim() ? scripture : moodScripture;
 
 	useEffect(() => {
 		if (!showMoodBurst) return;
@@ -69,7 +73,7 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 		<ModeContainer>
 			<ModeIntro title="Lead with clarity and execution" subtitle={dateLabel} />
 			<AnchorCard
-				scripture={moodScripture}
+				scripture={anchorScripture}
 				fallbackText="Commit your work to the Lord, and your plans will be established."
 				fallbackReference="Proverbs 16:3"
 				anchorLabel="Full anchor · Excellence"
@@ -110,7 +114,9 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 
 			<GlassCard className="border-blue-300/20 bg-blue-500/10 text-left">
 				<div className="mb-2.5 flex items-center justify-between gap-3">
-					<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-blue-100 md:text-sm">Goals workspace</h3>
+					<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-blue-100 md:text-sm">
+						Goals workspace
+					</h3>
 					<p className="text-xs font-semibold text-blue-100/90">{completionRate}% complete</p>
 				</div>
 				<div className="mb-2 grid grid-cols-3 gap-2">
@@ -129,9 +135,14 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 				</div>
 				<div className="space-y-1.5">
 					{overviewGoals.map((goal) => (
-						<div key={goal.id} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+						<div
+							key={goal.id}
+							className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
+						>
 							<p className="truncate text-sm text-white/90">{goal.title}</p>
-							<p className="text-xs text-white/65">{goal.current}/{goal.target}</p>
+							<p className="text-xs text-white/65">
+								{goal.current}/{goal.target}
+							</p>
 						</div>
 					))}
 				</div>

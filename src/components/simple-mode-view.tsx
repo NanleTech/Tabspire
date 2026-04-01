@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import Confetti from "react-confetti";
+import { createPortal } from "react-dom";
+import { getMoodVerseForDay, type MoodId, moodOptions } from "../data/mood-verse-library";
 import { usePersistedState } from "../hooks/use-persisted-state";
-import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
-import type { Scripture } from "../types";
-import { getMoodVerseForDay, moodOptions, type MoodId } from "../data/mood-verse-library";
 import { useWindowSize } from "../hooks/use-window-size";
+import type { Scripture } from "../types";
+import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
 
 interface SimpleModeViewProps {
 	scripture: Scripture | null;
@@ -29,7 +29,7 @@ const defaultHabits: HabitItem[] = [
 ];
 
 const SimpleModeView: React.FC<SimpleModeViewProps> = ({
-	scripture: _scripture,
+	scripture,
 	onPlay,
 	onRefresh,
 	onOpenDevotional,
@@ -69,9 +69,12 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 	const completedHabits = habits.filter((item) => item.done).length;
 	const moodVerse = getMoodVerseForDay(selectedMood);
 	const moodScripture: Scripture = { text: moodVerse.text, reference: moodVerse.reference };
+	const anchorScripture = scripture?.text?.trim() ? scripture : moodScripture;
 
 	const toggleHabit = (id: string) => {
-		setHabits((prev) => prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)));
+		setHabits((prev) =>
+			prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)),
+		);
 	};
 
 	const handleMoodSelect = (moodId: MoodId) => {
@@ -86,7 +89,7 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 		<ModeContainer>
 			<ModeIntro title="Breathe, receive, begin" subtitle={dateLabel} />
 			<AnchorCard
-				scripture={moodScripture}
+				scripture={anchorScripture}
 				fallbackText="Now faith is confidence in what we hope for and assurance about what we do not see."
 				fallbackReference="Hebrews 11:1"
 				anchorLabel="Simple anchor · Peace"
@@ -130,7 +133,9 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 					<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70 md:text-sm">
 						Faith habits
 					</h3>
-					<p className="text-xs font-semibold text-violet-200/80">{completedHabits} of {habits.length} complete</p>
+					<p className="text-xs font-semibold text-violet-200/80">
+						{completedHabits} of {habits.length} complete
+					</p>
 				</div>
 				<div className="space-y-1.5">
 					{habits.map((habit) => (
@@ -140,8 +145,14 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 							onClick={() => toggleHabit(habit.id)}
 							className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-left"
 						>
-							<span className={`h-4 w-4 rounded-md border ${habit.done ? "border-violet-300/80 bg-violet-300/40" : "border-white/35"}`} />
-							<span className={`text-sm ${habit.done ? "text-white/50 line-through" : "text-white/90"}`}>{habit.label}</span>
+							<span
+								className={`h-4 w-4 rounded-md border ${habit.done ? "border-violet-300/80 bg-violet-300/40" : "border-white/35"}`}
+							/>
+							<span
+								className={`text-sm ${habit.done ? "text-white/50 line-through" : "text-white/90"}`}
+							>
+								{habit.label}
+							</span>
 						</button>
 					))}
 				</div>
@@ -154,7 +165,9 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 							Verse journal
 						</h3>
 						<p className="mt-1 text-xs text-white/65">
-							{todayEntry.trim() ? "Today's journal is saved locally." : "Capture what God is highlighting today."}
+							{todayEntry.trim()
+								? "Today's journal is saved locally."
+								: "Capture what God is highlighting today."}
 						</p>
 					</div>
 					<button
@@ -166,7 +179,9 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 					</button>
 				</div>
 				<div className="mt-2 rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-left text-xs text-white/80">
-					{todayEntry.trim() ? `${todayEntry.slice(0, 140)}${todayEntry.length > 140 ? "..." : ""}` : "No entry for today yet."}
+					{todayEntry.trim()
+						? `${todayEntry.slice(0, 140)}${todayEntry.length > 140 ? "..." : ""}`
+						: "No entry for today yet."}
 				</div>
 			</GlassCard>
 
@@ -176,7 +191,9 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 						<div className="flex h-14 items-center justify-between border-b border-white/10 px-4 md:px-6">
 							<div>
 								<h2 className="text-base font-semibold text-white md:text-lg">Verse journal</h2>
-								<p className="text-[11px] text-white/55 md:text-xs">Saved locally on this device by date.</p>
+								<p className="text-[11px] text-white/55 md:text-xs">
+									Saved locally on this device by date.
+								</p>
 							</div>
 							<button
 								type="button"
