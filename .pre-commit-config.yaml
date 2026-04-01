@@ -1,0 +1,20 @@
+minimum_pre_commit_version: "4.0.0"
+default_stages: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+
+  - repo: local
+    hooks:
+      - id: biome-check
+        name: biome-check
+        entry: pnpm biome check --write
+        language: system
+        files: \.(js|jsx|ts|tsx|json|css|md)$
