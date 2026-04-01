@@ -10,7 +10,7 @@ rm -rf build
 rm -f tabspire.zip
 
 # Build the React app
-yarn build
+pnpm build
 
 # Create a new directory for the extension package
 mkdir -p extension-package
@@ -32,7 +32,7 @@ zip -r ../tabspire.zip . -x "*.DS_Store"
 cd ..
 rm -rf extension-package
 
-npm run build:extension
+pnpm run build:production
 
 echo "✅ Build complete! Extension packaged as tabspire.zip"
 echo "📦 You can now upload tabspire.zip to the Chrome Web Store" 

@@ -1,4 +1,5 @@
-import type { Scripture, Devotional, ContentSliderProps } from '../types';
+import Skeleton from './ui/skeleton';
+import type { ContentSliderProps } from '../types';
 import ScriptureDisplay from './scripture_display';
 import DevotionalDisplay from './devotional_display';
 
@@ -15,6 +16,7 @@ const ContentSlider: React.FC<ContentSliderProps> = ({
   disabled,
   elevenLabsVoiceId,
   bibleId,
+  isDataLoading = false,
 }) => {
   return (
     <div className="relative">
@@ -59,7 +61,7 @@ const ContentSlider: React.FC<ContentSliderProps> = ({
         <div className="transition-all duration-500 ease-in-out transform">
           {currentView === 'scripture' ? (
             <div className="text-center animate-fade-in">
-              {scripture ? (
+              {scripture && !isDataLoading ? (
                 <ScriptureDisplay
                   scripture={scripture}
                   fontStyle={fontStyle}
@@ -70,6 +72,11 @@ const ContentSlider: React.FC<ContentSliderProps> = ({
                   elevenLabsVoiceId={elevenLabsVoiceId}
                   isDarkMode={isDarkMode}
                 />
+              ) : isDataLoading ? (
+                <div className="max-w-2xl mx-auto">
+                  <Skeleton lines={3} height="h-8" className="mb-4" />
+                  <Skeleton width="60%" height="h-6" className="mx-auto" />
+                </div>
               ) : (
                 <div className={`text-lg ${
                   isDarkMode ? 'text-gray-400' : 'text-gray-600'
@@ -80,7 +87,7 @@ const ContentSlider: React.FC<ContentSliderProps> = ({
             </div>
           ) : (
             <div className="text-center animate-fade-in">
-              {devotional ? (
+              {devotional && !isDataLoading ? (
                 <DevotionalDisplay
                   devotional={devotional}
                   fontStyle={fontStyle}
@@ -92,6 +99,12 @@ const ContentSlider: React.FC<ContentSliderProps> = ({
                   disabled={disabled}
                   elevenLabsVoiceId={elevenLabsVoiceId}
                 />
+              ) : isDataLoading ? (
+                <div className="max-w-2xl mx-auto text-left">
+                  <Skeleton width="70%" height="h-8" className="mb-6 mx-auto" />
+                  <Skeleton lines={4} height="h-5" className="mb-3" />
+                  <Skeleton width="40%" height="h-5" className="mx-auto" />
+                </div>
               ) : (
                 <div className={`text-lg ${
                   isDarkMode ? 'text-gray-400' : 'text-gray-600'

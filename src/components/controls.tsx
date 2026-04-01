@@ -2,6 +2,7 @@ import React from 'react';
 import type { FontStyle, ThemeType } from '../enums';
 
 interface ControlsProps {
+  mode: 'simple' | 'work' | 'full';
   onRefresh: () => void;
   onToggleTheme: () => void;
   isDarkMode: boolean;
@@ -16,10 +17,12 @@ interface ControlsProps {
   theme: ThemeType;
   settingsButton?: React.ReactNode;
   onRefreshDevotional?: () => void;
-  currentView?: 'scripture' | 'devotional';
+  currentView?: 'scripture' | 'devotional' | 'goals';
+  onOpenGoals?: () => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({
+  mode,
   onRefresh,
   onToggleTheme,
   isDarkMode,
@@ -35,10 +38,11 @@ const Controls: React.FC<ControlsProps> = ({
   settingsButton,
   onRefreshDevotional,
   currentView,
+  onOpenGoals,
 }) => {
   return (
     <div className="controls">
-      {theme === 'full' && (
+      {theme === 'full' && mode !== 'simple' && (
         <button
           type="button"
           onClick={onToggleHistoryPanel}
@@ -47,6 +51,31 @@ const Controls: React.FC<ControlsProps> = ({
           style={{ fontSize: 18, background: showHistoryPanel ? '#38bdf8' : undefined, color: showHistoryPanel ? '#fff' : undefined }}
         >
           <span role="img" aria-label="history">🕒</span>
+        </button>
+      )}
+      {(mode === 'work' || mode === 'full') && (
+        <button
+          type="button"
+          className="control-button"
+          title="Work Mode"
+          style={{ fontSize: 18 }}
+        >
+          <span role="img" aria-label="Work Mode">💼</span>
+        </button>
+      )}
+      {mode === 'full' && (
+        <button
+          type="button"
+          onClick={onOpenGoals}
+          className="control-button"
+          title={currentView === 'goals' ? 'Back to Verse' : 'Goal Dashboard'}
+          style={{
+            fontSize: 18,
+            background: currentView === 'goals' ? '#60a5fa' : undefined,
+            color: currentView === 'goals' ? '#fff' : undefined,
+          }}
+        >
+          <span role="img" aria-label="Goals">🎯</span>
         </button>
       )}
       <button 

@@ -1,0 +1,286 @@
+import { useState } from "react";
+import { usePersistedState } from "../hooks/use-persisted-state";
+import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
+import type { Scripture } from "../types";
+
+interface WorkModeViewProps {
+	scripture: Scripture | null;
+	onPlay: () => void;
+	onRefresh: () => void;
+	onOpenDevotional: () => void;
+}
+
+type PriorityTag = "Deep work" | "Meeting" | "Admin";
+
+interface PriorityItem {
+	id: string;
+	title: string;
+	tag: PriorityTag;
+	done: boolean;
+}
+
+type NudgeContext = "deep_work" | "meeting" | "admin";
+
+interface WorkNudge {
+	id: string;
+	title: string;
+	text: string;
+	reference: string;
+	action: string;
+	contexts: NudgeContext[];
+}
+
+const defaultPriorities: PriorityItem[] = [
+	{ id: "p1", title: "Finish Q2 budget report for CFO review", tag: "Deep work", done: true },
+	{ id: "p2", title: "1:1 with Sarah — performance feedback", tag: "Meeting", done: false },
+	{ id: "p3", title: "Reply to outstanding client emails", tag: "Admin", done: false },
+];
+
+const PRIORITY_LIMIT = 3;
+
+const wisdomChips = [
+	{ label: "For meetings", text: "Plans fail for lack of counsel", ref: "Prov 15:22" },
+	{ label: "For decisions", text: "Commit your work to the Lord", ref: "Prov 16:3" },
+	{ label: "For pressure", text: "Do not grow weary in doing good", ref: "Gal 6:9" },
+];
+
+const workNudges: WorkNudge[] = [
+	{
+		id: "n1",
+		title: "A thought for your 1:1 this afternoon",
+		text: "A gentle answer turns away wrath, but a harsh word stirs up anger.",
+		reference: "Proverbs 15:1",
+		action: "Speak with grace today",
+		contexts: ["meeting"],
+	},
+	{
+		id: "n2",
+		title: "Before your deep work block",
+		text: "Whatever you do, work at it with all your heart, as working for the Lord.",
+		reference: "Colossians 3:23",
+		action: "Guard your focus window",
+		contexts: ["deep_work"],
+	},
+	{
+		id: "n3",
+		title: "For your admin tasks",
+		text: "Whoever can be trusted with very little can also be trusted with much.",
+		reference: "Luke 16:10",
+		action: "Treat small tasks with excellence",
+		contexts: ["admin"],
+	},
+	{
+		id: "n4",
+		title: "A leadership reminder",
+		text: "Let each of you look not only to his own interests, but also to the interests of others.",
+		reference: "Philippians 2:4",
+		action: "Listen with intent",
+		contexts: ["meeting", "admin"],
+	},
+	{
+		id: "n5",
+		title: "When pressure rises",
+		text: "If any of you lacks wisdom, let him ask of God, who gives generously.",
+		reference: "James 1:5",
+		action: "Pray before deciding",
+		contexts: ["deep_work", "meeting", "admin"],
+	},
+];
+
+const tagClassByName: Record<string, string> = {
+	"Deep work": "border-blue-300/50 bg-blue-400/10 text-blue-200",
+	Meeting: "border-amber-300/50 bg-amber-400/10 text-amber-200",
+	Admin: "border-violet-300/50 bg-violet-400/10 text-violet-200",
+};
+
+const contextByTag: Record<PriorityTag, NudgeContext> = {
+	"Deep work": "deep_work",
+	Meeting: "meeting",
+	Admin: "admin",
+};
+
+const pickNudgeForDay = (context: NudgeContext, dayKey: string): WorkNudge => {
+	const candidates = workNudges.filter((nudge) => nudge.contexts.includes(context));
+	if (candidates.length === 0) return workNudges[0];
+
+	const seed = `${dayKey}-${context}`;
+	let hash = 0;
+	for (let index = 0; index < seed.length; index += 1) {
+		hash = (hash << 5) - hash + seed.charCodeAt(index);
+		hash |= 0;
+	}
+
+	return candidates[Math.abs(hash) % candidates.length];
+};
+
+const WorkModeView: React.FC<WorkModeViewProps> = ({
+	scripture,
+	onPlay,
+	onRefresh,
+	onOpenDevotional,
+}) => {
+	const [priorities, setPriorities] = usePersistedState<PriorityItem[]>(
+		"tabspire_work_priorities",
+		defaultPriorities,
+	);
+	const [newPriorityTitle, setNewPriorityTitle] = useState("");
+	const [newPriorityTag, setNewPriorityTag] = useState<PriorityTag>("Deep work");
+
+	const completedCount = priorities.filter((item) => item.done).length;
+
+	const handleTogglePriority = (id: string) => {
+		setPriorities((prev) =>
+			prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)),
+		);
+	};
+
+	const handleDeletePriority = (id: string) => {
+		setPriorities((prev) => prev.filter((item) => item.id !== id));
+	};
+
+	const handleAddPriority = () => {
+		const title = newPriorityTitle.trim();
+		if (!title || priorities.length >= PRIORITY_LIMIT) return;
+
+		setPriorities((prev) => [
+			...prev,
+			{
+				id: `${Date.now()}`,
+				title,
+				tag: newPriorityTag,
+				done: false,
+			},
+		]);
+
+		setNewPriorityTitle("");
+	};
+	const date = new Date();
+	const dateLabel = date.toLocaleDateString(undefined, {
+		weekday: "long",
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+	});
+	const dayKey = date.toISOString().slice(0, 10);
+	const primaryTask = priorities.find((item) => !item.done) || priorities[0];
+	const nudgeContext: NudgeContext = primaryTask ? contextByTag[primaryTask.tag] : "deep_work";
+	const todayNudge = pickNudgeForDay(nudgeContext, dayKey);
+
+	return (
+		<ModeContainer>
+			<ModeIntro title="Keep going, afternoon session" subtitle={dateLabel} />
+			<AnchorCard
+				scripture={scripture}
+				fallbackText="Whatever you do, work at it with all your heart, as working for the Lord, not for human masters."
+				fallbackReference="Colossians 3:23"
+				anchorLabel="Work anchor · Diligence"
+				accentClassName="border-emerald-200/20 bg-emerald-500/10"
+				onPlay={onPlay}
+				onRefresh={onRefresh}
+				onOpenDevotional={onOpenDevotional}
+			/>
+
+			<GlassCard>
+				<div className="mb-2.5 flex items-center justify-between">
+					<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70 md:text-sm">
+						Today&apos;s {PRIORITY_LIMIT} priorities
+					</h3>
+					<p className="text-xs font-semibold text-emerald-300/90 md:text-sm">
+						{completedCount} of {priorities.length} done
+					</p>
+				</div>
+				<div className="space-y-1">
+					{priorities.map((priority) => (
+						<div
+							key={priority.id}
+							className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 md:px-3.5"
+						>
+							<div className="flex items-center gap-3">
+								<button
+									type="button"
+									onClick={() => handleTogglePriority(priority.id)}
+									aria-label={`Mark ${priority.title} as ${priority.done ? "incomplete" : "complete"}`}
+									className={`h-4 w-4 rounded-md border transition ${priority.done ? "border-emerald-300/80 bg-emerald-300/30" : "border-white/30 bg-transparent hover:border-white/50"}`}
+								/>
+								<p
+									className={`text-sm md:text-base ${priority.done ? "text-white/45 line-through" : "text-white/90"}`}
+								>
+									{priority.title}
+								</p>
+							</div>
+							<div className="flex items-center gap-1.5">
+								<span
+									className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${tagClassByName[priority.tag] || "border-white/20 bg-white/10 text-white/70"}`}
+								>
+									{priority.tag}
+								</span>
+								<button
+									type="button"
+									onClick={() => handleDeletePriority(priority.id)}
+									aria-label={`Remove ${priority.title}`}
+									className="rounded-md border border-white/20 px-1.5 py-0.5 text-[11px] text-white/60 transition hover:bg-white/10 hover:text-white"
+								>
+									×
+								</button>
+							</div>
+						</div>
+					))}
+					{priorities.length < PRIORITY_LIMIT && (
+						<div className="flex flex-col gap-2 rounded-xl border border-dashed border-white/25 bg-white/[0.02] p-2.5 md:flex-row md:items-center">
+							<input
+								type="text"
+								value={newPriorityTitle}
+								onChange={(event) => setNewPriorityTitle(event.target.value)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter") handleAddPriority();
+								}}
+								placeholder="Add a priority..."
+								className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-2.5 py-1.5 text-xs text-white placeholder:text-white/45 focus:border-emerald-300/40 focus:outline-none"
+							/>
+							<select
+								value={newPriorityTag}
+								onChange={(event) => setNewPriorityTag(event.target.value as PriorityTag)}
+								className="rounded-lg border border-white/15 bg-black/30 px-2.5 py-1.5 text-xs text-white focus:border-emerald-300/40 focus:outline-none"
+							>
+								<option value="Deep work">Deep work</option>
+								<option value="Meeting">Meeting</option>
+								<option value="Admin">Admin</option>
+							</select>
+							<button
+								type="button"
+								onClick={handleAddPriority}
+								disabled={!newPriorityTitle.trim()}
+								className="rounded-lg border border-emerald-300/35 bg-emerald-300/15 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition hover:bg-emerald-300/25 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								Add
+							</button>
+						</div>
+					)}
+				</div>
+			</GlassCard>
+
+			<GlassCard className="border-amber-300/20 bg-amber-500/10">
+				<p className="mb-1.5 text-xs font-semibold text-amber-200 md:text-sm">{todayNudge.title}</p>
+				<p className="text-base italic leading-relaxed text-white/90 md:text-xl">
+					“{todayNudge.text}”
+				</p>
+				<p className="mt-1 text-xs text-amber-100/70 md:text-sm">{todayNudge.reference} · {todayNudge.action}</p>
+			</GlassCard>
+
+			<div className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
+				{wisdomChips.map((chip) => (
+					<GlassCard
+						key={chip.label}
+						className="mb-0 rounded-2xl border-white/10 bg-black/20 p-3.5 text-left"
+					>
+						<p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/55">{chip.label}</p>
+						<p className="mt-1 text-sm font-medium leading-snug text-white/85 md:text-base">{chip.text}</p>
+						<p className="mt-1 text-xs text-white/50">{chip.ref}</p>
+					</GlassCard>
+				))}
+			</div>
+		</ModeContainer>
+	);
+};
+
+export default WorkModeView;

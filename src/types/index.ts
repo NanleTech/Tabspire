@@ -76,6 +76,7 @@ export interface ContentSliderProps {
   disabled: boolean;
   elevenLabsVoiceId: string;
   bibleId?: string;
+  isDataLoading?: boolean;
 }
 
 export interface ControlsProps {

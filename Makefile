@@ -13,7 +13,7 @@ clean:
 
 # Install dependencies
 install:
-	yarn install
+	pnpm install
 
 # Build and package in one command
 all: clean build 

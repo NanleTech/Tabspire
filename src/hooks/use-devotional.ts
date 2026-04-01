@@ -1,12 +1,83 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Devotional } from "../types";
 
+const DEVOTIONAL_CACHE_KEY = "tabspire_devotional_cache";
+const REQUEST_TIMEOUT_MS = 4500;
+const TRIUMPH30_FEED_URLS = ["https://triumph30.org/feed/", "https://t30.org/feed/"];
+
+interface DevotionalCacheEntry {
+	dayKey: string;
+	timestamp: number;
+	data: Devotional;
+}
+
+const getDayKey = () => new Date().toISOString().slice(0, 10);
+
+const fallbackDevotional: Devotional = {
+	title: "Steady in Every Season",
+	content:
+		"Trust in the Lord with all your heart and lean not on your own understanding. In all your ways submit to him, and he will make your paths straight.\n\nWalk slowly, pray honestly, and let obedience become your daily rhythm.",
+	date: new Date().toLocaleDateString("en-US", {
+		weekday: "long",
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	}),
+	reference: "Proverbs 3:5",
+	url: "",
+};
+
+const getCachedDevotional = (): Devotional | null => {
+	try {
+		const raw = localStorage.getItem(DEVOTIONAL_CACHE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as DevotionalCacheEntry;
+		if (!parsed?.data || parsed.dayKey !== getDayKey()) return null;
+		return parsed.data;
+	} catch {
+		return null;
+	}
+};
+
+const setCachedDevotional = (data: Devotional) => {
+	try {
+		const payload: DevotionalCacheEntry = {
+			dayKey: getDayKey(),
+			timestamp: Date.now(),
+			data,
+		};
+		localStorage.setItem(DEVOTIONAL_CACHE_KEY, JSON.stringify(payload));
+	} catch {
+		// Ignore cache write failures
+	}
+};
+
+const fetchWithTimeout = async (url: string, options?: RequestInit): Promise<Response> => {
+	const controller = new AbortController();
+	const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+	try {
+		return await fetch(url, { ...(options || {}), signal: controller.signal });
+	} finally {
+		window.clearTimeout(timeoutId);
+	}
+};
+
 export const useDevotional = () => {
-	const [devotional, setDevotional] = useState<Devotional | null>(null);
+	const [devotional, setDevotional] = useState<Devotional | null>(() => getCachedDevotional());
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const fetchDevotional = useCallback(async () => {
+	const fetchDevotional = useCallback(async (options?: { force?: boolean }) => {
+		const force = options?.force === true;
+		if (!force) {
+			const cached = getCachedDevotional();
+			if (cached) {
+				setDevotional(cached);
+				setError(null);
+				return;
+			}
+		}
+
 		setLoading(true);
 		setError(null);
 
@@ -18,7 +89,7 @@ export const useDevotional = () => {
 			try {
 				// Use a CORS proxy to fetch the full article
 				const proxyUrl = "https://api.allorigins.win/raw?url=";
-				const response = await fetch(proxyUrl + encodeURIComponent(url));
+				const response = await fetchWithTimeout(proxyUrl + encodeURIComponent(url));
 
 				if (!response.ok) {
 					throw new Error("Failed to fetch full article");
@@ -121,33 +192,32 @@ export const useDevotional = () => {
 
 		try {
 			// Try multiple CORS proxies for reliability
-			const proxies = [
-				"https://api.allorigins.win/raw?url=",
-				"https://cors-anywhere.herokuapp.com/",
-				"https://thingproxy.freeboard.io/fetch/",
-			];
+			const proxies = ["https://api.allorigins.win/raw?url=", "https://thingproxy.freeboard.io/fetch/"];
 
 			let response: Response | null = null;
 			let lastError: Error | null = null;
 
-			for (const proxy of proxies) {
-				try {
-					const rssUrl = "https://t30.org/feed/";
-					const fullUrl = proxy + encodeURIComponent(rssUrl);
+			for (const rssUrl of TRIUMPH30_FEED_URLS) {
+				for (const proxy of proxies) {
+					try {
+						const fullUrl = proxy + encodeURIComponent(rssUrl);
 
-					response = await fetch(fullUrl, {
-						method: "GET",
-						headers: {
-							Accept: "application/xml, text/xml, */*",
-						},
-					});
+						response = await fetchWithTimeout(fullUrl, {
+							method: "GET",
+							headers: {
+								Accept: "application/xml, text/xml, */*",
+							},
+						});
 
-					if (response.ok) {
-						break; // Success, exit the loop
+						if (response.ok) {
+							break;
+						}
+					} catch (err) {
+						lastError = err instanceof Error ? err : new Error("Proxy failed");
 					}
-				} catch (err) {
-					lastError = err instanceof Error ? err : new Error("Proxy failed");
 				}
+
+				if (response?.ok) break;
 			}
 
 			if (!response || !response.ok) {
@@ -175,35 +245,19 @@ export const useDevotional = () => {
 				// Use content:encoded if available, otherwise fall back to description
 				const content = contentEncoded || description;
 
-				console.log("=== RSS FEED DEBUG ===");
-				console.log("Title:", title);
-				console.log("Link:", link);
-				console.log("Description length:", description.length);
-				console.log("Content encoded length:", contentEncoded.length);
-				console.log("Final content length:", content.length);
-				console.log("Content preview:", `${content.substring(0, 200)}...`);
-
 				// Check if we have the Bible Reading Plan (indicates full content)
 				const hasBibleReadingPlan = content.includes("Bible Reading Plan:");
-				console.log("Has Bible Reading Plan:", hasBibleReadingPlan);
 
 				// If content is truncated or missing Bible Reading Plan, try to fetch the full article
 				let finalContent = content;
 				if (!hasBibleReadingPlan || content.length < 1000) {
-					console.log(
-						"Content appears truncated, attempting to fetch full article...",
-					);
 					try {
 						const fullArticleContent = await fetchFullArticle(link, title);
 						if (fullArticleContent) {
 							finalContent = fullArticleContent;
-							console.log(
-								"Successfully fetched full article, length:",
-								fullArticleContent.length,
-							);
 						}
-					} catch (err) {
-						console.log("Failed to fetch full article:", err);
+					} catch {
+						// Ignore full-article fetch failures and continue with RSS excerpt
 					}
 				}
 
@@ -229,13 +283,6 @@ export const useDevotional = () => {
 					.replace(/\n\s*\n/g, "\n\n") // Clean up multiple newlines
 					.trim(); // Remove leading/trailing whitespace
 
-				console.log("Final cleaned content length:", cleanContent.length);
-				console.log(
-					"Final content ends with:",
-					cleanContent.substring(cleanContent.length - 100),
-				);
-				console.log("=== END DEBUG ===");
-
 				const devotionalData: Devotional = {
 					title,
 					content: cleanContent,
@@ -250,10 +297,22 @@ export const useDevotional = () => {
 				};
 
 				setDevotional(devotionalData);
+				setCachedDevotional(devotionalData);
 			} else {
 				throw new Error("No devotional found in RSS feed");
 			}
 		} catch (err) {
+			const fallback = {
+				...fallbackDevotional,
+				date: new Date().toLocaleDateString("en-US", {
+					weekday: "long",
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+				}),
+			};
+			setDevotional(fallback);
+			setCachedDevotional(fallback);
 			setError(
 				err instanceof Error ? err.message : "Failed to fetch devotional",
 			);
@@ -267,5 +326,10 @@ export const useDevotional = () => {
 		fetchDevotional();
 	}, [fetchDevotional]);
 
-	return { devotional, loading, error, refetch: fetchDevotional };
+	return {
+		devotional,
+		loading,
+		error,
+		refetch: () => fetchDevotional({ force: true }),
+	};
 };

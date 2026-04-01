@@ -3,10 +3,11 @@ import Header from "./header";
 import Content from "./content";
 import Footer from "./footer";
 import Controls from "../components/controls";
-import SettingsPanel from "../components/SettingsPanel";
-import HistoryPanel from "../components/HistoryPanel";
-import ThemeSelectModal from "../components/ThemeSelectModal";
+import SettingsPanel from "../components/settings-panel-modern";
+import HistoryPanel from "../components/history-panel";
+import ThemeSelectModal from "../components/theme-select-modal";
 import icon from "../icon.svg";
+import { useAudio } from "../hooks/use-audio";
 import type { ViewType, ThemeType, FontStyle, BackgroundType } from "../enums";
 import type {
 	Scripture,
@@ -14,6 +15,8 @@ import type {
 	UnsplashPhoto,
 	CustomBackground,
 } from "../types";
+
+type ModeType = "simple" | "work" | "full";
 
 interface LayoutProps {
 	// Core state
@@ -40,6 +43,7 @@ interface LayoutProps {
 	selectedVoice: string;
 	settingsPanelOpen: boolean;
 	showDateTime: boolean;
+	mode: ModeType;
 
 	// Handlers
 	onRefresh: () => void;
@@ -55,9 +59,11 @@ interface LayoutProps {
 	onResetBackground: () => void;
 	onUploadBackground: (file: File) => void;
 	onShowDateTimeChange: (val: boolean) => void;
+	onModeChange: (mode: ModeType) => void;
 	onToggleHistoryPanel: () => void;
 	onRefreshDevotional: () => void;
 	onSettingsToggle: () => void;
+	isDataLoading?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({
@@ -85,6 +91,7 @@ const Layout: React.FC<LayoutProps> = ({
 	selectedVoice,
 	settingsPanelOpen,
 	showDateTime,
+	mode,
 
 	// Handlers
 	onRefresh,
@@ -100,13 +107,20 @@ const Layout: React.FC<LayoutProps> = ({
 	onResetBackground,
 	onUploadBackground,
 	onShowDateTimeChange,
+	onModeChange,
 	onToggleHistoryPanel,
 	onRefreshDevotional,
 	onSettingsToggle,
+	isDataLoading = false,
 }) => {
 	const [showThemeModal, setShowThemeModal] = useState(false);
-	const [isPlaying, setIsPlaying] = useState(false);
-	const [audioDisabled, setAudioDisabled] = useState(false);
+	
+	// Initialize audio hook with ElevenLabs API key from environment
+	const elevenLabsApiKey = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
+	const { isPlaying, isLoading, error, playText, stopAudio, clearError } = useAudio({
+		elevenLabsApiKey,
+		elevenLabsVoiceId
+	});
 
 	const shareText = scripture
 		? `${scripture.text} - ${scripture.reference}`
@@ -118,60 +132,26 @@ const Layout: React.FC<LayoutProps> = ({
 	};
 
 	const handleAudioPlay = async () => {
-		console.log('Audio button clicked!');
-		console.log('Current elevenLabsVoiceId:', elevenLabsVoiceId);
-		console.log('Current view:', currentView);
-		console.log('Scripture:', scripture);
-		console.log('Devotional:', devotional);
-
-		if (!elevenLabsVoiceId || elevenLabsVoiceId.trim() === "") {
-			alert('Please configure an ElevenLabs voice in settings first.');
-			return;
-		}
-
 		if (isPlaying) {
 			// Stop audio
-			console.log('Stopping audio...');
-			setIsPlaying(false);
+			stopAudio();
 			return;
 		}
 
-		try {
-			setAudioDisabled(true);
-			setIsPlaying(true);
+		// Get the text to convert to speech
+		const textToSpeak = currentView === 'scripture' && scripture
+			? `${scripture.text}. ${scripture.reference}`
+			: currentView === 'devotional' && devotional
+			? `${devotional.title}. ${devotional.content}`
+			: '';
 
-			// Get the text to convert to speech
-			const textToSpeak = currentView === 'scripture' && scripture
-				? `${scripture.text}. ${scripture.reference}`
-				: currentView === 'devotional' && devotional
-				? `${devotional.title}. ${devotional.content}`
-				: '';
-
-			if (!textToSpeak) {
-				alert('No content available to convert to speech.');
-				setIsPlaying(false);
-				setAudioDisabled(false);
-				return;
-			}
-
-			// Here you would integrate with ElevenLabs API
-			// For now, we'll simulate the audio functionality
-			console.log('Converting to speech:', textToSpeak);
-			console.log('Using voice ID:', elevenLabsVoiceId);
-
-			// Simulate audio duration
-			setTimeout(() => {
-				console.log('Audio simulation finished');
-				setIsPlaying(false);
-				setAudioDisabled(false);
-			}, 5000); // 5 seconds simulation
-
-		} catch (error) {
-			console.error('Audio playback error:', error);
-			alert('Error playing audio. Please try again.');
-			setIsPlaying(false);
-			setAudioDisabled(false);
+		if (!textToSpeak) {
+			alert('No content available to convert to speech.');
+			return;
 		}
+
+		// Play the text using the audio hook
+		await playText(textToSpeak);
 	};
 
 	return (
@@ -219,6 +199,8 @@ const Layout: React.FC<LayoutProps> = ({
 				onUploadBackground={onUploadBackground}
 				showDateTime={showDateTime}
 				onShowDateTimeChange={onShowDateTimeChange}
+				mode={mode}
+				onModeChange={onModeChange}
 				elevenLabsVoiceId={elevenLabsVoiceId}
 				onElevenLabsVoiceChange={onElevenLabsVoiceChange}
 			/>
@@ -237,8 +219,10 @@ const Layout: React.FC<LayoutProps> = ({
 				onToggleHistoryPanel={onToggleHistoryPanel}
 				showHistoryPanel={showHistoryPanel}
 				theme={theme}
+				mode={mode}
 				onRefreshDevotional={onRefreshDevotional}
 				currentView={currentView}
+				onOpenGoals={() => onViewChange(currentView === "goals" ? "scripture" : "goals")}
 				settingsButton={
 					<button
 						type="button"
@@ -257,11 +241,48 @@ const Layout: React.FC<LayoutProps> = ({
 			{/* History Panel */}
 			<HistoryPanel
 				recentHistory={recentHistory}
-				visible={theme === "full" && showHistoryPanel}
+				visible={theme === "full" && mode !== "simple" && showHistoryPanel}
 			/>
+
+			{/* Error Display */}
+			{error && (
+				<div style={{
+					position: 'fixed',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					background: 'rgba(220, 38, 38, 0.9)',
+					color: 'white',
+					padding: '16px 24px',
+					borderRadius: '8px',
+					zIndex: 1000,
+					display: 'flex',
+					alignItems: 'center',
+					gap: '12px',
+					boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+				}}>
+					<span>⚠️</span>
+					<span>{error}</span>
+					<button
+						type="button"
+						onClick={clearError}
+						style={{
+							background: 'none',
+							border: 'none',
+							color: 'white',
+							cursor: 'pointer',
+							fontSize: '18px',
+							marginLeft: '8px'
+						}}
+					>
+						✕
+					</button>
+				</div>
+			)}
 
 			{/* Main Content */}
 			<Content
+				mode={mode}
 				scripture={scripture}
 				devotional={devotional}
 				fontStyle={fontStyle}
@@ -271,11 +292,13 @@ const Layout: React.FC<LayoutProps> = ({
 				onViewChange={onViewChange}
 				onPlay={handleAudioPlay}
 				isPlaying={isPlaying}
-				disabled={audioDisabled}
+				disabled={isLoading}
 				elevenLabsVoiceId={elevenLabsVoiceId}
 				bibleId={bibleId}
 				theme={theme}
 				bookmarkLinks={bookmarkLinks}
+				isDataLoading={isDataLoading}
+				onRefresh={onRefresh}
 			/>
 
 			{/* Footer Components */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import RecentTabsOrHistory from './components/RecentTabsOrHistory';
+import RecentTabsOrHistory from './components/recent-tabs-or-history';
 
 const Popup: React.FC = () => {
   const [mode, setMode] = useState<'tabs' | 'history'>('tabs');

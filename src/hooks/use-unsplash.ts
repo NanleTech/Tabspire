@@ -26,6 +26,7 @@ function getRandomFallbackImage() {
 export function useUnsplash() {
   const [photo, setPhoto] = useState<UnsplashPhoto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   const fetchPhoto = useCallback(async () => {
     setLoading(true);
@@ -78,6 +79,7 @@ export function useUnsplash() {
         version: APP_VERSION,
       })
     );
+    setIsReady(true);
     setLoading(false);
   }, []);
 
@@ -91,6 +93,7 @@ export function useUnsplash() {
         const isSameVersion = version === APP_VERSION;
         if (isFresh && isSameVersion) {
           setPhoto(photo);
+          setIsReady(true);
           setLoading(false);
           return;
         }
@@ -100,5 +103,5 @@ export function useUnsplash() {
     // eslint-disable-next-line
   }, []);
 
-  return { photo, loading, fetchPhoto };
+  return { photo, loading, isReady, fetchPhoto };
 } 

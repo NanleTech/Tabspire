@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import "./App.css";
-import { useScripture } from "./hooks/useScripture";
-import { useUnsplash } from "./hooks/useUnsplash";
-import { useDevotional } from "./hooks/useDevotional";
+import "./app.css";
+import { useScripture } from "./hooks/use-scripture";
+import { useUnsplash } from "./hooks/use-unsplash";
+import { useDevotional } from "./hooks/use-devotional";
 import { Layout } from "./layout";
+import ModeSelector from "./components/mode-selector";
 import {
 	LANGUAGE_BIBLE_IDS,
 	DEFAULT_VOICE_ID,
@@ -26,15 +27,24 @@ interface HistoryItem {
 	title?: string;
 }
 
+type ModeType = "simple" | "work" | "full";
+
 function App() {
 	// Core state
 	const [language, setLanguage] = useState(
 		() => localStorage.getItem("tabspire_language") || "en",
 	);
 	const [currentView, setCurrentView] = useState<ViewType>("scripture");
-	const [isDarkMode, setIsDarkMode] = useState(true);
-	const [fontSize, setFontSize] = useState(2);
-	const [loading, setLoading] = useState(true);
+	const [isDarkMode, setIsDarkMode] = useState(() => {
+		const stored = localStorage.getItem("tabspire_dark_mode");
+		return stored === null ? true : stored === "true";
+	});
+	const [fontSize, setFontSize] = useState(
+		() => {
+			const stored = localStorage.getItem("tabspire_font_size");
+			return stored ? Number.parseFloat(stored) : 1.4;
+		}
+	);
 	const [fontStyle, setFontStyle] = useState<FontStyle>(
 		() => (localStorage.getItem("tabspire_font_style") as FontStyle) || "serif",
 	);
@@ -45,14 +55,20 @@ function App() {
 	const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(
 		() => localStorage.getItem("tabspire_elevenlabs_voice_id") || DEFAULT_VOICE_ID,
 	);
+	const [mode, setMode] = useState<ModeType>(() => {
+		const stored = localStorage.getItem("tabspire_mode");
+		return stored === "work" || stored === "full" ? stored : "simple";
+	});
+	const [isOnboarded, setIsOnboarded] = useState(() => {
+		return localStorage.getItem("tabspire_onboarded") === "true";
+	});
 
 	// Hooks
 	const bibleId = LANGUAGE_BIBLE_IDS[language];
-	const { scripture, fetchScripture } = useScripture(bibleId);
-	const { photo, loading: photoLoading, fetchPhoto } = useUnsplash();
+	const { scripture, isReady: scriptureReady, fetchScripture } = useScripture(bibleId);
+	const { photo, isReady: photoReady, fetchPhoto } = useUnsplash();
 	const {
 		devotional,
-		loading: devotionalLoading,
 		refetch: refetchDevotional,
 	} = useDevotional();
 
@@ -86,24 +102,30 @@ function App() {
 
 	// Handlers
 	const handleRefresh = useCallback(() => {
-		setLoading(true);
-		fetchScripture().then(() => setLoading(false));
+		fetchScripture();
 		fetchPhoto();
 	}, [fetchScripture, fetchPhoto]);
 
-	const toggleTheme = () => setIsDarkMode((prev) => !prev);
+	const toggleTheme = () => {
+		setIsDarkMode((prev) => {
+			const newValue = !prev;
+			localStorage.setItem("tabspire_dark_mode", String(newValue));
+			return newValue;
+		});
+	};
 
 	const adjustFontSize = (delta: number) => {
-		setFontSize((prev) => Math.max(0.6, Math.min(3, prev + delta)));
+		setFontSize((prev) => {
+			const newSize = Math.max(0.6, Math.min(3, prev + delta));
+			localStorage.setItem("tabspire_font_size", newSize.toString());
+			return newSize;
+		});
 	};
 
 	const handleLanguageChange = (lang: string) => {
 		setLanguage(lang);
 		localStorage.setItem("tabspire_language", lang);
-		setLoading(true);
-		fetchScripture(undefined, LANGUAGE_BIBLE_IDS[lang]).finally(() =>
-			setLoading(false),
-		);
+		fetchScripture(undefined, LANGUAGE_BIBLE_IDS[lang]);
 	};
 
 	const handleFontStyleChange = (style: FontStyle) => {
@@ -154,9 +176,25 @@ function App() {
 		localStorage.setItem("tabspire_show_datetime", val ? "true" : "false");
 	};
 
+	const handleModeChange = (nextMode: ModeType) => {
+		setMode(nextMode);
+		localStorage.setItem("tabspire_mode", nextMode);
+	};
+
+	const handleOnboardingComplete = () => {
+		const persistedMode = localStorage.getItem("tabspire_mode");
+		if (persistedMode === "work" || persistedMode === "full") {
+			setMode(persistedMode);
+		} else {
+			setMode("simple");
+		}
+		setIsOnboarded(true);
+		localStorage.setItem("tabspire_onboarded", "true");
+	};
+
 	// Effects
 	useEffect(() => {
-		fetchScripture().finally(() => setLoading(false));
+		fetchScripture();
 	}, [fetchScripture]);
 
 	useEffect(() => {
@@ -193,10 +231,6 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		if (!theme) setTheme("minimal");
-	}, [theme]);
-
-	useEffect(() => {
 		const loadVoices = () => {
 			const allVoices = window.speechSynthesis.getVoices();
 			setVoices(allVoices);
@@ -208,9 +242,14 @@ function App() {
 		window.speechSynthesis.onvoiceschanged = loadVoices;
 	}, [selectedVoice]);
 
-	if (loading || photoLoading || devotionalLoading) {
-		return <div className="loading">Loading...</div>;
-	}
+	useEffect(() => {
+		if (currentView === "goals" && mode !== "full") {
+			setCurrentView("scripture");
+		}
+	}, [currentView, mode]);
+
+	// Show main UI when either scripture or photo is ready (cached or loaded)
+	const isReady = scriptureReady || photoReady;
 
 	return (
 		<div
@@ -233,6 +272,7 @@ function App() {
 				} as React.CSSProperties
 			}
 		>
+			{!isOnboarded && <ModeSelector onComplete={handleOnboardingComplete} />}
 			<Layout
 				// Core state
 				language={language}
@@ -258,6 +298,7 @@ function App() {
 				selectedVoice={selectedVoice}
 				settingsPanelOpen={settingsPanelOpen}
 				showDateTime={showDateTime}
+				mode={mode}
 				
 				// Handlers
 				onRefresh={handleRefresh}
@@ -273,9 +314,11 @@ function App() {
 				onResetBackground={handleResetBackground}
 				onUploadBackground={handleUploadBackground}
 				onShowDateTimeChange={handleShowDateTimeChange}
+				onModeChange={handleModeChange}
 				onToggleHistoryPanel={() => setShowHistoryPanel((v) => !v)}
 				onRefreshDevotional={refetchDevotional}
 				onSettingsToggle={() => setSettingsPanelOpen((v) => !v)}
+				isDataLoading={!isReady}
 			/>
 		</div>
 	);

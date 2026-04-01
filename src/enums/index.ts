@@ -73,7 +73,7 @@ export const SAMPLE_VERSE = {
 };
 
 // View Types
-export type ViewType = 'scripture' | 'devotional';
+export type ViewType = 'scripture' | 'devotional' | 'goals';
 
 // Theme Types
 export type ThemeType = 'minimal' | 'full';
