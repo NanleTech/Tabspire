@@ -1,18 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./app.css";
-import { useScripture } from "./hooks/use-scripture";
-import { useUnsplash } from "./hooks/use-unsplash";
-import { useDevotional } from "./hooks/use-devotional";
-import { Layout } from "./layout";
 import ModeSelector from "./components/mode-selector";
 import {
-	LANGUAGE_BIBLE_IDS,
-	DEFAULT_VOICE_ID,
-	type ViewType,
-	type ThemeType,
-	type FontStyle,
 	type BackgroundType,
+	DEFAULT_VOICE_ID,
+	type FontStyle,
+	LANGUAGE_BIBLE_IDS,
+	type ThemeType,
+	type ViewType,
 } from "./enums";
+import { useDevotional } from "./hooks/use-devotional";
+import { useScripture } from "./hooks/use-scripture";
+import { useUnsplash } from "./hooks/use-unsplash";
+import { Layout } from "./layout";
 import type { CustomBackground } from "./types";
 
 interface BookmarkItem {
@@ -31,20 +31,16 @@ type ModeType = "simple" | "work" | "full";
 
 function App() {
 	// Core state
-	const [language, setLanguage] = useState(
-		() => localStorage.getItem("tabspire_language") || "en",
-	);
+	const [language, setLanguage] = useState(() => localStorage.getItem("tabspire_language") || "en");
 	const [currentView, setCurrentView] = useState<ViewType>("scripture");
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		const stored = localStorage.getItem("tabspire_dark_mode");
 		return stored === null ? true : stored === "true";
 	});
-	const [fontSize, setFontSize] = useState(
-		() => {
-			const stored = localStorage.getItem("tabspire_font_size");
-			return stored ? Number.parseFloat(stored) : 1.4;
-		}
-	);
+	const [fontSize, setFontSize] = useState(() => {
+		const stored = localStorage.getItem("tabspire_font_size");
+		return stored ? Number.parseFloat(stored) : 1.4;
+	});
 	const [fontStyle, setFontStyle] = useState<FontStyle>(
 		() => (localStorage.getItem("tabspire_font_style") as FontStyle) || "serif",
 	);
@@ -62,15 +58,16 @@ function App() {
 	const [isOnboarded, setIsOnboarded] = useState(() => {
 		return localStorage.getItem("tabspire_onboarded") === "true";
 	});
+	const [maxPriorities, setMaxPriorities] = useState(() => {
+		const stored = localStorage.getItem("tabspire_max_priorities");
+		return stored ? Number.parseInt(stored, 10) : 3;
+	});
 
 	// Hooks
 	const bibleId = LANGUAGE_BIBLE_IDS[language];
 	const { scripture, isReady: scriptureReady, fetchScripture } = useScripture(bibleId);
 	const { photo, isReady: photoReady, fetchPhoto } = useUnsplash();
-	const {
-		devotional,
-		refetch: refetchDevotional,
-	} = useDevotional();
+	const { devotional, refetch: refetchDevotional } = useDevotional();
 
 	// UI state
 	const [showHistoryPanel, setShowHistoryPanel] = useState(false);
@@ -96,9 +93,7 @@ function App() {
 			return { type: "", value: "" };
 		}
 	};
-	const [customBackground, setCustomBackground] = useState<CustomBackground>(
-		getStoredBg(),
-	);
+	const [customBackground, setCustomBackground] = useState<CustomBackground>(getStoredBg());
 
 	// Handlers
 	const handleRefresh = useCallback(() => {
@@ -176,6 +171,12 @@ function App() {
 		localStorage.setItem("tabspire_show_datetime", val ? "true" : "false");
 	};
 
+	const handleMaxPrioritiesChange = (val: number) => {
+		const clamped = Math.max(1, Math.min(5, val));
+		setMaxPriorities(clamped);
+		localStorage.setItem("tabspire_max_priorities", String(clamped));
+	};
+
 	const handleModeChange = (nextMode: ModeType) => {
 		setMode(nextMode);
 		localStorage.setItem("tabspire_mode", nextMode);
@@ -200,18 +201,12 @@ function App() {
 	useEffect(() => {
 		if (chrome.bookmarks?.getTree) {
 			chrome.bookmarks.getTree((nodes) => {
-				const flatten = (
-					arr: chrome.bookmarks.BookmarkTreeNode[],
-				): BookmarkItem[] =>
-					arr.reduce(
-						(acc: BookmarkItem[], node: chrome.bookmarks.BookmarkTreeNode) => {
-							if (node.url)
-								acc.push({ id: node.id, url: node.url, title: node.title });
-							if (node.children) acc.push(...flatten(node.children));
-							return acc;
-						},
-						[],
-					);
+				const flatten = (arr: chrome.bookmarks.BookmarkTreeNode[]): BookmarkItem[] =>
+					arr.reduce((acc: BookmarkItem[], node: chrome.bookmarks.BookmarkTreeNode) => {
+						if (node.url) acc.push({ id: node.id, url: node.url, title: node.title });
+						if (node.children) acc.push(...flatten(node.children));
+						return acc;
+					}, []);
 				setBookmarkLinks(flatten(nodes).slice(0, 5));
 			});
 		}
@@ -256,10 +251,7 @@ function App() {
 			className={`app ${isDarkMode ? "dark-mode" : "light-mode"}`}
 			style={
 				{
-					backgroundColor:
-						customBackground.type === "color"
-							? customBackground.value
-							: undefined,
+					backgroundColor: customBackground.type === "color" ? customBackground.value : undefined,
 					backgroundImage:
 						customBackground.type === "gradient"
 							? customBackground.value
@@ -283,13 +275,11 @@ function App() {
 				theme={theme}
 				elevenLabsVoiceId={elevenLabsVoiceId}
 				bibleId={bibleId}
-				
 				// Data
 				scripture={scripture}
 				photo={photo}
 				devotional={devotional}
 				customBackground={customBackground}
-				
 				// UI state
 				showHistoryPanel={showHistoryPanel}
 				bookmarkLinks={bookmarkLinks}
@@ -298,8 +288,8 @@ function App() {
 				selectedVoice={selectedVoice}
 				settingsPanelOpen={settingsPanelOpen}
 				showDateTime={showDateTime}
+				maxPriorities={maxPriorities}
 				mode={mode}
-				
 				// Handlers
 				onRefresh={handleRefresh}
 				onToggleTheme={toggleTheme}
@@ -314,6 +304,7 @@ function App() {
 				onResetBackground={handleResetBackground}
 				onUploadBackground={handleUploadBackground}
 				onShowDateTimeChange={handleShowDateTimeChange}
+				onMaxPrioritiesChange={handleMaxPrioritiesChange}
 				onModeChange={handleModeChange}
 				onToggleHistoryPanel={() => setShowHistoryPanel((v) => !v)}
 				onRefreshDevotional={refetchDevotional}

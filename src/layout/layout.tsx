@@ -1,20 +1,15 @@
 import { useState } from "react";
-import Header from "./header";
+import Controls from "../components/controls";
+import HistoryPanel from "../components/history-panel";
+import SettingsPanel from "../components/settings-panel-modern";
+import ThemeSelectModal from "../components/theme-select-modal";
+import type { BackgroundType, FontStyle, ThemeType, ViewType } from "../enums";
+import { useAudio } from "../hooks/use-audio";
+import icon from "../icon.svg";
+import type { CustomBackground, Devotional, Scripture, UnsplashPhoto } from "../types";
 import Content from "./content";
 import Footer from "./footer";
-import Controls from "../components/controls";
-import SettingsPanel from "../components/settings-panel-modern";
-import HistoryPanel from "../components/history-panel";
-import ThemeSelectModal from "../components/theme-select-modal";
-import icon from "../icon.svg";
-import { useAudio } from "../hooks/use-audio";
-import type { ViewType, ThemeType, FontStyle, BackgroundType } from "../enums";
-import type {
-	Scripture,
-	Devotional,
-	UnsplashPhoto,
-	CustomBackground,
-} from "../types";
+import Header from "./header";
 
 type ModeType = "simple" | "work" | "full";
 
@@ -43,6 +38,7 @@ interface LayoutProps {
 	selectedVoice: string;
 	settingsPanelOpen: boolean;
 	showDateTime: boolean;
+	maxPriorities: number;
 	mode: ModeType;
 
 	// Handlers
@@ -59,6 +55,7 @@ interface LayoutProps {
 	onResetBackground: () => void;
 	onUploadBackground: (file: File) => void;
 	onShowDateTimeChange: (val: boolean) => void;
+	onMaxPrioritiesChange: (val: number) => void;
 	onModeChange: (mode: ModeType) => void;
 	onToggleHistoryPanel: () => void;
 	onRefreshDevotional: () => void;
@@ -91,6 +88,7 @@ const Layout: React.FC<LayoutProps> = ({
 	selectedVoice,
 	settingsPanelOpen,
 	showDateTime,
+	maxPriorities,
 	mode,
 
 	// Handlers
@@ -107,6 +105,7 @@ const Layout: React.FC<LayoutProps> = ({
 	onResetBackground,
 	onUploadBackground,
 	onShowDateTimeChange,
+	onMaxPrioritiesChange,
 	onModeChange,
 	onToggleHistoryPanel,
 	onRefreshDevotional,
@@ -114,17 +113,15 @@ const Layout: React.FC<LayoutProps> = ({
 	isDataLoading = false,
 }) => {
 	const [showThemeModal, setShowThemeModal] = useState(false);
-	
+
 	// Initialize audio hook with ElevenLabs API key from environment
-	const elevenLabsApiKey = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
+	const elevenLabsApiKey = process.env.REACT_APP_ELEVENLABS_API_KEY || "";
 	const { isPlaying, isLoading, error, playText, stopAudio, clearError } = useAudio({
 		elevenLabsApiKey,
-		elevenLabsVoiceId
+		elevenLabsVoiceId,
 	});
 
-	const shareText = scripture
-		? `${scripture.text} - ${scripture.reference}`
-		: "";
+	const shareText = scripture ? `${scripture.text} - ${scripture.reference}` : "";
 
 	const handleThemeSelect = (selectedTheme: ThemeType) => {
 		onThemeSelect(selectedTheme);
@@ -139,14 +136,15 @@ const Layout: React.FC<LayoutProps> = ({
 		}
 
 		// Get the text to convert to speech
-		const textToSpeak = currentView === 'scripture' && scripture
-			? `${scripture.text}. ${scripture.reference}`
-			: currentView === 'devotional' && devotional
-			? `${devotional.title}. ${devotional.content}`
-			: '';
+		const textToSpeak =
+			currentView === "scripture" && scripture
+				? `${scripture.text}. ${scripture.reference}`
+				: currentView === "devotional" && devotional
+					? `${devotional.title}. ${devotional.content}`
+					: "";
 
 		if (!textToSpeak) {
-			alert('No content available to convert to speech.');
+			alert("No content available to convert to speech.");
 			return;
 		}
 
@@ -199,6 +197,8 @@ const Layout: React.FC<LayoutProps> = ({
 				onUploadBackground={onUploadBackground}
 				showDateTime={showDateTime}
 				onShowDateTimeChange={onShowDateTimeChange}
+				maxPriorities={maxPriorities}
+				onMaxPrioritiesChange={onMaxPrioritiesChange}
 				mode={mode}
 				onModeChange={onModeChange}
 				elevenLabsVoiceId={elevenLabsVoiceId}
@@ -246,33 +246,35 @@ const Layout: React.FC<LayoutProps> = ({
 
 			{/* Error Display */}
 			{error && (
-				<div style={{
-					position: 'fixed',
-					top: '50%',
-					left: '50%',
-					transform: 'translate(-50%, -50%)',
-					background: 'rgba(220, 38, 38, 0.9)',
-					color: 'white',
-					padding: '16px 24px',
-					borderRadius: '8px',
-					zIndex: 1000,
-					display: 'flex',
-					alignItems: 'center',
-					gap: '12px',
-					boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-				}}>
+				<div
+					style={{
+						position: "fixed",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						background: "rgba(220, 38, 38, 0.9)",
+						color: "white",
+						padding: "16px 24px",
+						borderRadius: "8px",
+						zIndex: 1000,
+						display: "flex",
+						alignItems: "center",
+						gap: "12px",
+						boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+					}}
+				>
 					<span>⚠️</span>
 					<span>{error}</span>
 					<button
 						type="button"
 						onClick={clearError}
 						style={{
-							background: 'none',
-							border: 'none',
-							color: 'white',
-							cursor: 'pointer',
-							fontSize: '18px',
-							marginLeft: '8px'
+							background: "none",
+							border: "none",
+							color: "white",
+							cursor: "pointer",
+							fontSize: "18px",
+							marginLeft: "8px",
 						}}
 					>
 						✕
@@ -299,6 +301,7 @@ const Layout: React.FC<LayoutProps> = ({
 				bookmarkLinks={bookmarkLinks}
 				isDataLoading={isDataLoading}
 				onRefresh={onRefresh}
+				maxPriorities={maxPriorities}
 			/>
 
 			{/* Footer Components */}

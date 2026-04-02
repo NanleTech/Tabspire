@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BUILTIN_BACKGROUNDS, SAMPLE_VERSE, type FontStyle, type ThemeType } from "../enums";
+import { BUILTIN_BACKGROUNDS, type FontStyle, SAMPLE_VERSE, type ThemeType } from "../enums";
 
 type ModeType = "simple" | "work" | "full";
 type SectionId = "mode" | "appearance" | "content" | "audio" | "display";
@@ -24,6 +24,8 @@ interface SettingsPanelProps {
 	onUploadBackground: (file: File) => void;
 	showDateTime: boolean;
 	onShowDateTimeChange: (val: boolean) => void;
+	maxPriorities: number;
+	onMaxPrioritiesChange: (val: number) => void;
 	elevenLabsVoiceId?: string;
 	onElevenLabsVoiceChange?: (voiceId: string) => void;
 }
@@ -62,6 +64,8 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 	onUploadBackground,
 	showDateTime,
 	onShowDateTimeChange,
+	maxPriorities,
+	onMaxPrioritiesChange,
 	elevenLabsVoiceId,
 	onElevenLabsVoiceChange,
 }) => {
@@ -101,7 +105,12 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 
 	const modeCards = useMemo(
 		() => [
-			{ id: "simple" as const, name: "Simple", accent: "#A78BFA", desc: "Peace and scripture focus" },
+			{
+				id: "simple" as const,
+				name: "Simple",
+				accent: "#A78BFA",
+				desc: "Peace and scripture focus",
+			},
 			{ id: "work" as const, name: "Work", accent: "#64C88C", desc: "Priorities and nudges" },
 			{ id: "full" as const, name: "Full", accent: "#60A5FA", desc: "Goals and deeper tracking" },
 		],
@@ -111,7 +120,9 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 	if (!open) return null;
 
 	const handleVoicePreview = () => {
-		const utterance = new window.SpeechSynthesisUtterance(`${SAMPLE_VERSE.text} - ${SAMPLE_VERSE.reference}`);
+		const utterance = new window.SpeechSynthesisUtterance(
+			`${SAMPLE_VERSE.text} - ${SAMPLE_VERSE.reference}`,
+		);
 		const voice = voices.find((v) => v.voiceURI === previewVoice);
 		if (voice) utterance.voice = voice;
 		window.speechSynthesis.speak(utterance);
@@ -123,8 +134,12 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 				return (
 					<section className="space-y-4">
 						<div>
-							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Experience mode</h3>
-							<p className="mt-1 text-sm text-white/70">Switch depth instantly. Features adapt by mode.</p>
+							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">
+								Experience mode
+							</h3>
+							<p className="mt-1 text-sm text-white/70">
+								Switch depth instantly. Features adapt by mode.
+							</p>
 						</div>
 						<div className="grid gap-2 md:grid-cols-3">
 							{modeCards.map((card) => {
@@ -152,8 +167,12 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 				return (
 					<section className="space-y-4">
 						<div>
-							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Background</h3>
-							<p className="mt-1 text-sm text-white/70">Choose built-ins, upload, or reset to random.</p>
+							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">
+								Background
+							</h3>
+							<p className="mt-1 text-sm text-white/70">
+								Choose built-ins, upload, or reset to random.
+							</p>
 						</div>
 						<div className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2">
 							{BUILTIN_BACKGROUNDS.map((bg) => (
@@ -167,7 +186,8 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 											customBackground.value === bg.value && customBackground.type === bg.type
 												? "#60A5FA"
 												: "rgba(255,255,255,0.2)",
-										background: bg.type === "color" || bg.type === "gradient" ? bg.value : undefined,
+										background:
+											bg.type === "color" || bg.type === "gradient" ? bg.value : undefined,
 										backgroundImage: bg.type === "image" ? `url(${bg.value})` : undefined,
 										backgroundSize: "cover",
 										backgroundPosition: "center",
@@ -200,12 +220,18 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 				return (
 					<section className="space-y-4">
 						<div>
-							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Content preferences</h3>
+							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">
+								Content preferences
+							</h3>
 						</div>
 						<div className="grid gap-3 md:grid-cols-2">
 							<div>
 								<p className="mb-1 text-xs text-white/60">Language</p>
-								<select value={language} onChange={(e) => onLanguageChange(e.target.value)} className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white">
+								<select
+									value={language}
+									onChange={(e) => onLanguageChange(e.target.value)}
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								>
 									<option value="en">English</option>
 									<option value="es">Spanish</option>
 									<option value="hat">Haitian Creole</option>
@@ -214,7 +240,11 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 							</div>
 							<div>
 								<p className="mb-1 text-xs text-white/60">Font style</p>
-								<select value={fontStyle} onChange={(e) => onFontStyleChange(e.target.value as FontStyle)} className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white">
+								<select
+									value={fontStyle}
+									onChange={(e) => onFontStyleChange(e.target.value as FontStyle)}
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								>
 									<option value="serif">Serif</option>
 									<option value="sans-serif">Sans-serif</option>
 									<option value="monospace">Monospace</option>
@@ -228,7 +258,9 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 				return (
 					<section className="space-y-4">
 						<div>
-							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Audio</h3>
+							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">
+								Audio
+							</h3>
 						</div>
 						<div className="grid gap-3 md:grid-cols-2">
 							<div>
@@ -242,7 +274,9 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
 								>
 									{voices.map((voice) => (
-										<option key={voice.voiceURI} value={voice.voiceURI}>{voice.name}</option>
+										<option key={voice.voiceURI} value={voice.voiceURI}>
+											{voice.name}
+										</option>
 									))}
 								</select>
 							</div>
@@ -256,12 +290,18 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 								>
 									<option value="">Default</option>
 									{elevenLabsVoices.map((voice) => (
-										<option key={voice.voice_id} value={voice.voice_id}>{voice.name}</option>
+										<option key={voice.voice_id} value={voice.voice_id}>
+											{voice.name}
+										</option>
 									))}
 								</select>
 							</div>
 						</div>
-						<button type="button" onClick={handleVoicePreview} className="rounded-xl border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/85">
+						<button
+							type="button"
+							onClick={handleVoicePreview}
+							className="rounded-xl border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/85"
+						>
 							🔊 Preview sample
 						</button>
 					</section>
@@ -270,21 +310,55 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 				return (
 					<section className="space-y-4">
 						<div>
-							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Display</h3>
+							<h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">
+								Display
+							</h3>
 						</div>
 						<div className="grid gap-3 md:grid-cols-2">
 							<div>
 								<p className="mb-1 text-xs text-white/60">Theme level</p>
-								<select value={theme} onChange={(e) => onThemeChange(e.target.value as ThemeType)} className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white">
+								<select
+									value={theme}
+									onChange={(e) => onThemeChange(e.target.value as ThemeType)}
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								>
 									<option value="minimal">Minimal</option>
 									<option value="full">Full</option>
 								</select>
 							</div>
 							<label className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-sm text-white/85">
-								<input type="checkbox" checked={showDateTime} onChange={(e) => onShowDateTimeChange(e.target.checked)} />
+								<input
+									type="checkbox"
+									checked={showDateTime}
+									onChange={(e) => onShowDateTimeChange(e.target.checked)}
+								/>
 								Show date and time
 							</label>
 						</div>
+						{mode === "work" && (
+							<div className="rounded-xl border border-emerald-300/20 bg-emerald-500/5 p-3">
+								<p className="mb-2 text-xs font-semibold text-emerald-200/90">Work Mode Settings</p>
+								<div>
+									<p className="mb-1 text-xs text-white/60">Max priorities (1-5)</p>
+									<div className="flex items-center gap-2">
+										<input
+											type="range"
+											min="1"
+											max="5"
+											value={maxPriorities}
+											onChange={(e) => onMaxPrioritiesChange(Number(e.target.value))}
+											className="flex-1"
+										/>
+										<span className="tabular-nums text-sm font-semibold text-emerald-200">
+											{maxPriorities}
+										</span>
+									</div>
+									<p className="mt-1 text-xs text-white/50">
+										Controls how many priorities you can add for the day
+									</p>
+								</div>
+							</div>
+						)}
 					</section>
 				);
 		}
@@ -297,7 +371,13 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 					<div>
 						<h2 className="text-lg font-semibold text-white">Settings</h2>
 					</div>
-					<button type="button" onClick={onClose} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1 text-sm text-white/80">Close</button>
+					<button
+						type="button"
+						onClick={onClose}
+						className="rounded-xl border border-white/20 bg-white/5 px-3 py-1 text-sm text-white/80"
+					>
+						Close
+					</button>
 				</div>
 
 				<div className="flex h-[calc(92dvh-56px)] min-h-0 overflow-hidden">
@@ -309,7 +389,9 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 									type="button"
 									onClick={() => setActiveSection(section.id)}
 									className={`w-full rounded-xl px-3 py-2 text-left transition ${
-										activeSection === section.id ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10"
+										activeSection === section.id
+											? "bg-white/15 text-white"
+											: "text-white/70 hover:bg-white/10"
 									}`}
 								>
 									<p className="text-sm font-medium">{section.label}</p>
@@ -341,7 +423,11 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 									</div>
 								) : (
 									<div className="space-y-3">
-										<button type="button" onClick={() => setShowSectionListMobile(true)} className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/85">
+										<button
+											type="button"
+											onClick={() => setShowSectionListMobile(true)}
+											className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/85"
+										>
 											← Back to sections
 										</button>
 										<div className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.03] p-3">
