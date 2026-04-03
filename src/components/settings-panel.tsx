@@ -21,7 +21,6 @@ interface SettingsPanelPropsUpdated {
 	};
 	onSetBackground: (bg: string, type: "color" | "gradient" | "image" | "") => void;
 	onResetBackground: () => void;
-	onUploadBackground: (file: File) => void;
 	showDateTime: boolean;
 	onShowDateTimeChange: (val: boolean) => void;
 	elevenLabsVoiceId?: string;
@@ -53,7 +52,6 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 	customBackground,
 	onSetBackground,
 	onResetBackground,
-	_onUploadBackground,
 	showDateTime,
 	onShowDateTimeChange,
 	elevenLabsVoiceId,
