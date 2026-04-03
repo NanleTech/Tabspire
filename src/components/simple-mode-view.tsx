@@ -5,7 +5,7 @@ import { getMoodVerseForDay, type MoodId, moodOptions } from "../data/mood-verse
 import { usePersistedState } from "../hooks/use-persisted-state";
 import { useWindowSize } from "../hooks/use-window-size";
 import type { Scripture } from "../types";
-import { AnchorCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
+import { AnchorCard, FeatureCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
 
 interface SimpleModeViewProps {
 	scripture: Scripture | null;
@@ -50,6 +50,7 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 		{},
 	);
 	const [isJournalOpen, setIsJournalOpen] = useState(false);
+	const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
 	const [showMoodBurst, setShowMoodBurst] = useState(false);
 	const { width, height } = useWindowSize();
 	const [habits, setHabits] = usePersistedState<HabitItem[]>(
@@ -70,6 +71,7 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 	const moodVerse = getMoodVerseForDay(selectedMood);
 	const moodScripture: Scripture = { text: moodVerse.text, reference: moodVerse.reference };
 	const anchorScripture = scripture?.text?.trim() ? scripture : moodScripture;
+	const selectedMoodMeta = moodOptions.find((mood) => mood.id === selectedMood) || moodOptions[0];
 
 	const toggleHabit = (id: string) => {
 		setHabits((prev) =>
@@ -83,6 +85,7 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 			setShowMoodBurst(true);
 			window.setTimeout(() => setShowMoodBurst(false), 1400);
 		}
+		setIsMoodModalOpen(false);
 	};
 
 	return (
@@ -92,41 +95,24 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 				scripture={anchorScripture}
 				fallbackText="Now faith is confidence in what we hope for and assurance about what we do not see."
 				fallbackReference="Hebrews 11:1"
-				anchorLabel="Simple anchor · Peace"
+				anchorLabel={`Simple anchor · ${selectedMoodMeta.label}`}
 				accentClassName="border-violet-200/25 bg-violet-500/10"
 				onPlay={onPlay}
 				onRefresh={onRefresh}
 				onOpenDevotional={onOpenDevotional}
 			/>
 
-			<GlassCard>
-				<div className="mb-2.5 flex items-center justify-between">
-					<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-white/70 md:text-sm">
-						Mood check-in
-					</h3>
-					<p className="text-xs text-white/60">Choose today&apos;s posture</p>
-				</div>
-				<div className="relative grid grid-cols-2 gap-2 sm:grid-cols-4">
-					{moodOptions.map((mood) => {
-						const active = selectedMood === mood.id;
-						return (
-							<button
-								key={mood.id}
-								type="button"
-								onClick={() => handleMoodSelect(mood.id)}
-								className={`rounded-xl border px-3 py-2 text-left text-xs transition duration-200 md:text-sm ${
-									active
-										? "scale-[1.02] border-violet-300/60 bg-violet-300/20 text-white shadow-[0_0_0_1px_rgba(196,181,253,0.3),0_8px_20px_rgba(139,92,246,0.2)]"
-										: "border-white/15 bg-white/[0.03] text-white/80 hover:-translate-y-[1px] hover:border-white/30 hover:bg-white/[0.07]"
-								}`}
-							>
-								<span className="mr-1.5">{mood.emoji}</span>
-								{mood.label}
-							</button>
-						);
-					})}
-				</div>
-			</GlassCard>
+			<div className="mb-2 flex justify-center">
+				<button
+					type="button"
+					onClick={() => setIsMoodModalOpen(true)}
+					className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-3 py-1 text-[11px] font-medium text-white/80 hover:bg-black/45"
+				>
+					<span className="opacity-80">Mood check-in:</span>
+					<span>{selectedMoodMeta.emoji}</span>
+					<span className="capitalize">{selectedMoodMeta.label}</span>
+				</button>
+			</div>
 
 			<GlassCard>
 				<div className="mb-2.5 flex items-center justify-between">
@@ -158,39 +144,68 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 				</div>
 			</GlassCard>
 
-			<GlassCard className="border-violet-300/20 bg-violet-500/10">
-				<div className="flex items-center justify-between gap-2">
-					<div>
-						<h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-200 md:text-sm">
-							Verse journal
-						</h3>
-						<p className="mt-1 text-xs text-white/65">
-							{todayEntry.trim()
-								? "Today's journal is saved locally."
-								: "Capture what God is highlighting today."}
-						</p>
+			<FeatureCard
+				title="Journal"
+				subtitle={
+					todayEntry.trim()
+						? "Today's journal is saved locally."
+						: "Capture what God is highlighting today."
+				}
+				metric={todayEntry.trim() ? "Saved" : "Not captured"}
+				onClick={() => setIsJournalOpen(true)}
+				className="border-violet-300/20 bg-violet-500/10"
+			/>
+
+			{isMoodModalOpen && (
+				<div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm">
+					<div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/20 bg-[#070b14] shadow-2xl">
+						<div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+							<div>
+								<h2 className="text-sm font-semibold text-white md:text-base">Mood check-in</h2>
+								<p className="text-[11px] text-white/60 md:text-xs">
+									Choose today&apos;s posture for your anchor.
+								</p>
+							</div>
+							<button
+								type="button"
+								onClick={() => setIsMoodModalOpen(false)}
+								className="rounded-xl border border-white/20 bg-white/5 px-3 py-1 text-xs text-white/80 md:text-sm"
+							>
+								Close
+							</button>
+						</div>
+						<div className="p-4">
+							<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+								{moodOptions.map((mood) => {
+									const active = selectedMood === mood.id;
+									return (
+										<button
+											key={mood.id}
+											type="button"
+											onClick={() => handleMoodSelect(mood.id)}
+											className={`rounded-xl border px-3 py-2 text-left text-xs transition duration-200 md:text-sm ${
+												active
+													? "border-violet-300/70 bg-violet-400/20 text-white shadow-[0_0_0_1px_rgba(196,181,253,0.35),0_8px_20px_rgba(139,92,246,0.25)]"
+													: "border-white/20 bg-white/[0.04] text-white/80 hover:border-white/40 hover:bg-white/[0.08]"
+											}`}
+										>
+											<span className="mr-1.5">{mood.emoji}</span>
+											{mood.label}
+										</button>
+									);
+								})}
+							</div>
+						</div>
 					</div>
-					<button
-						type="button"
-						onClick={() => setIsJournalOpen(true)}
-						className="rounded-xl border border-violet-300/40 bg-violet-300/20 px-3 py-1.5 text-xs font-semibold text-violet-100 transition hover:bg-violet-300/30"
-					>
-						Open journal
-					</button>
 				</div>
-				<div className="mt-2 rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-left text-xs text-white/80">
-					{todayEntry.trim()
-						? `${todayEntry.slice(0, 140)}${todayEntry.length > 140 ? "..." : ""}`
-						: "No entry for today yet."}
-				</div>
-			</GlassCard>
+			)}
 
 			{isJournalOpen && (
 				<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-2 backdrop-blur-sm md:p-5">
 					<div className="flex h-[92dvh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-white/15 bg-[#070b14] shadow-2xl">
 						<div className="flex h-14 items-center justify-between border-b border-white/10 px-4 md:px-6">
 							<div>
-								<h2 className="text-base font-semibold text-white md:text-lg">Verse journal</h2>
+								<h2 className="text-base font-semibold text-white md:text-lg">Journal</h2>
 								<p className="text-[11px] text-white/55 md:text-xs">
 									Saved locally on this device by date.
 								</p>

@@ -3,7 +3,6 @@ import "./app.css";
 import ModeSelector from "./components/mode-selector";
 import {
 	type BackgroundType,
-	DEFAULT_VOICE_ID,
 	type FontStyle,
 	LANGUAGE_BIBLE_IDS,
 	type ThemeType,
@@ -48,9 +47,6 @@ function App() {
 		const stored = localStorage.getItem("tabspire_theme");
 		return stored === "minimal" || stored === "full" ? stored : "minimal";
 	});
-	const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(
-		() => localStorage.getItem("tabspire_elevenlabs_voice_id") || DEFAULT_VOICE_ID,
-	);
 	const [mode, setMode] = useState<ModeType>(() => {
 		const stored = localStorage.getItem("tabspire_mode");
 		return stored === "work" || stored === "full" ? stored : "simple";
@@ -136,11 +132,6 @@ function App() {
 	const handleVoiceChange = (voiceURI: string) => {
 		setSelectedVoice(voiceURI);
 		localStorage.setItem("tabspire_voice", voiceURI);
-	};
-
-	const handleElevenLabsVoiceChange = (voiceId: string) => {
-		setElevenLabsVoiceId(voiceId);
-		localStorage.setItem("tabspire_elevenlabs_voice_id", voiceId);
 	};
 
 	const handleViewChange = (view: ViewType) => setCurrentView(view);
@@ -273,7 +264,6 @@ function App() {
 				fontSize={fontSize}
 				fontStyle={fontStyle}
 				theme={theme}
-				elevenLabsVoiceId={elevenLabsVoiceId}
 				bibleId={bibleId}
 				// Data
 				scripture={scripture}
@@ -298,7 +288,6 @@ function App() {
 				onFontStyleChange={handleFontStyleChange}
 				onThemeSelect={handleThemeSelect}
 				onVoiceChange={handleVoiceChange}
-				onElevenLabsVoiceChange={handleElevenLabsVoiceChange}
 				onViewChange={handleViewChange}
 				onSetBackground={handleSetBackground}
 				onResetBackground={handleResetBackground}

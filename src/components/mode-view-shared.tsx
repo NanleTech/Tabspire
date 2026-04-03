@@ -26,13 +26,32 @@ interface GlassCardProps {
 	className?: string;
 }
 
+interface FeatureCardProps {
+	title: string;
+	subtitle?: string;
+	metric?: string;
+	onClick?: () => void;
+	className?: string;
+}
+
+interface WisdomCardProps {
+	label?: string;
+	text: string;
+	reference: string;
+	className?: string;
+}
+
 export const ModeContainer: React.FC<ModeContainerProps> = ({ children }) => (
-	<div className="mx-auto w-full max-w-3xl animate-fade-in overflow-x-hidden px-2 pb-14 pt-1 text-white md:pb-10">{children}</div>
+	<div className="mx-auto w-full max-w-3xl animate-fade-in overflow-x-hidden px-2 pb-14 pt-1 text-white md:pb-10">
+		{children}
+	</div>
 );
 
 export const ModeIntro: React.FC<ModeIntroProps> = ({ title, subtitle }) => (
 	<div className="mb-2 text-center">
-		<h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55 md:text-xs">{title}</h2>
+		<h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55 md:text-xs">
+			{title}
+		</h2>
 		<p className="mt-1 text-xs font-medium text-white/75 md:text-sm">{subtitle}</p>
 	</div>
 );
@@ -45,6 +64,55 @@ export const GlassCard: React.FC<GlassCardProps> = ({ children, className = "" }
 	</section>
 );
 
+export const FeatureCard: React.FC<FeatureCardProps> = ({
+	title,
+	subtitle,
+	metric,
+	onClick,
+	className = "",
+}) => {
+	const content = (
+		<div className="flex items-center justify-between gap-3">
+			<div>
+				<p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/75 md:text-xs">
+					{title}
+				</p>
+				{subtitle && <p className="mt-0.5 text-[11px] text-white/65 md:text-xs">{subtitle}</p>}
+			</div>
+			{metric && (
+				<p className="text-[11px] font-semibold text-emerald-200/90 md:text-xs">{metric}</p>
+			)}
+		</div>
+	);
+
+	if (onClick) {
+		return (
+			<button type="button" onClick={onClick} className="w-full text-left">
+				<GlassCard className={`cursor-pointer hover:bg-white/[0.08] ${className}`}>
+					{content}
+				</GlassCard>
+			</button>
+		);
+	}
+
+	return <GlassCard className={className}>{content}</GlassCard>;
+};
+
+export const WisdomCard: React.FC<WisdomCardProps> = ({
+	label = "Wisdom for today",
+	text,
+	reference,
+	className = "",
+}) => (
+	<GlassCard className={className}>
+		<p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-white/75 md:text-sm">
+			{label}
+		</p>
+		<p className="text-base leading-relaxed text-white/90 md:text-xl">“{text}”</p>
+		<p className="mt-1 text-xs text-white/70 md:text-sm">{reference}</p>
+	</GlassCard>
+);
+
 export const AnchorCard: React.FC<AnchorCardProps> = ({
 	scripture,
 	fallbackText,
@@ -55,7 +123,9 @@ export const AnchorCard: React.FC<AnchorCardProps> = ({
 	onRefresh,
 	onOpenDevotional,
 }) => (
-	<section className={`mb-2.5 rounded-3xl border p-3.5 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_20px_48px_rgba(0,0,0,0.35)] backdrop-blur-xl md:p-4 ${accentClassName}`}>
+	<section
+		className={`mb-2.5 rounded-3xl border p-3.5 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_20px_48px_rgba(0,0,0,0.35)] backdrop-blur-xl md:p-4 ${accentClassName}`}
+	>
 		<div className="mx-auto mb-2 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.12] px-3 py-1 text-xs font-medium text-white/90">
 			<span className="h-2 w-2 rounded-full bg-white/80" />
 			{anchorLabel}

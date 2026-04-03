@@ -1,23 +1,11 @@
 {
-  "version": 2,
-  "name": "tabspire-api",
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/elevenlabs/voices",
-      "dest": "/api/elevenlabs/voices.js"
-    },
-    {
-      "src": "/api/elevenlabs/tts",
-      "dest": "/api/elevenlabs/tts.js"
-    }
-  ],
-  "env": {
-    "ELEVENLABS_API_KEY": "@elevenlabs-api-key"
-  }
+	"version": 2,
+	"name": "tabspire-api",
+	"builds": [
+		{
+			"src": "api/**/*.js",
+			"use": "@vercel/node"
+		}
+	],
+	"routes": []
 }

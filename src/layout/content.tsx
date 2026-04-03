@@ -2,7 +2,7 @@ import DevotionalModern from "../components/devotional-modern";
 import FullModeView from "../components/full-mode-view";
 import GoalsDashboardView from "../components/goals-dashboard-view";
 import SimpleModeView from "../components/simple-mode-view";
-import WorkModeView from "../components/work-mode-view";
+import WorkModeView from "../components/work-mode-view/view";
 import type { FontStyle, ThemeType, ViewType } from "../enums";
 import type { Devotional, Scripture } from "../types";
 
@@ -18,7 +18,6 @@ interface ContentProps {
 	onPlay: () => void;
 	isPlaying: boolean;
 	disabled: boolean;
-	elevenLabsVoiceId: string;
 	bibleId: string;
 	theme: ThemeType;
 	bookmarkLinks: Array<{ id: string; url: string; title?: string }>;
@@ -39,8 +38,6 @@ const Content: React.FC<ContentProps> = ({
 	onPlay,
 	isPlaying,
 	disabled,
-	elevenLabsVoiceId,
-	bibleId,
 	onRefresh,
 	maxPriorities,
 }) => {
@@ -110,6 +107,7 @@ const Content: React.FC<ContentProps> = ({
 				onRefresh={onRefresh}
 				onOpenDevotional={() => onViewChange("devotional")}
 				onOpenGoals={() => onViewChange("goals")}
+				maxPriorities={maxPriorities}
 			/>
 		</div>
 	);

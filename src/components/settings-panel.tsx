@@ -1,10 +1,5 @@
-import { useState, useEffect } from "react";
-import {
-	BUILTIN_BACKGROUNDS,
-	SAMPLE_VERSE,
-	type ThemeType,
-	type FontStyle,
-} from "../enums";
+import { useEffect, useState } from "react";
+import { BUILTIN_BACKGROUNDS, type FontStyle, SAMPLE_VERSE, type ThemeType } from "../enums";
 
 interface SettingsPanelPropsUpdated {
 	open: boolean;
@@ -24,10 +19,7 @@ interface SettingsPanelPropsUpdated {
 		type: "color" | "gradient" | "image" | "";
 		value: string;
 	};
-	onSetBackground: (
-		bg: string,
-		type: "color" | "gradient" | "image" | "",
-	) => void;
+	onSetBackground: (bg: string, type: "color" | "gradient" | "image" | "") => void;
 	onResetBackground: () => void;
 	onUploadBackground: (file: File) => void;
 	showDateTime: boolean;
@@ -61,16 +53,14 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 	customBackground,
 	onSetBackground,
 	onResetBackground,
-	onUploadBackground,
+	_onUploadBackground,
 	showDateTime,
 	onShowDateTimeChange,
 	elevenLabsVoiceId,
 	onElevenLabsVoiceChange,
 }) => {
 	const [previewVoice, setPreviewVoice] = useState<string>(selectedVoice);
-	const [elevenLabsVoices, setElevenLabsVoices] = useState<ElevenLabsVoice[]>(
-		[],
-	);
+	const [elevenLabsVoices, setElevenLabsVoices] = useState<ElevenLabsVoice[]>([]);
 	const [elevenLabsLoading, setElevenLabsLoading] = useState(false);
 	const [elevenLabsError, setElevenLabsError] = useState<string | null>(null);
 
@@ -80,12 +70,12 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 			setElevenLabsLoading(true);
 			setElevenLabsError(null);
 			try {
-				const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '';
+				const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || "";
 				const resp = await fetch(`${apiBaseUrl}/api/elevenlabs/voices`);
 				if (!resp.ok) throw new Error("Failed to fetch voices");
 				const data = await resp.json();
 				setElevenLabsVoices(data.voices || []);
-			} catch (error) {
+			} catch (_error) {
 				setElevenLabsError("Could not load ElevenLabs voices.");
 			}
 			setElevenLabsLoading(false);
@@ -117,7 +107,7 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 			name: "Simple",
 			accent: "#A78BFA",
 			description: "Scripture, beauty, peace. Nothing more.",
-			chips: ["Verse", "Devotional", "Mood", "Faith goals"],
+			chips: ["Verse", "Devotional", "Mood", "Goals"],
 		},
 		{
 			id: "work",
@@ -142,10 +132,10 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 		{ name: "Bible verse", minMode: "simple" },
 		{ name: "Daily devotional", minMode: "simple" },
 		{ name: "Mood check-in", minMode: "simple" },
-		{ name: "Faith goals", minMode: "simple" },
+		{ name: "Goals", minMode: "simple" },
 		{ name: "Kokoro TTS", minMode: "simple" },
 		{ name: "Guided meditation", minMode: "simple" },
-		{ name: "Verse journal", minMode: "simple" },
+		{ name: "Journal", minMode: "simple" },
 		{ name: "Task planner", minMode: "work" },
 		{ name: "Wisdom chips", minMode: "work" },
 		{ name: "Integrity nudge", minMode: "work" },
@@ -189,7 +179,9 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 					{/* Mode Selector Section */}
 					<section className="bg-transparent rounded-2xl p-6 border border-[#1d2635] shadow-sm">
 						<div className="mb-6">
-							<h3 className="text-sm font-semibold text-gray-400 tracking-[0.14em] uppercase mb-3">Experience Mode</h3>
+							<h3 className="text-sm font-semibold text-gray-400 tracking-[0.14em] uppercase mb-3">
+								Experience Mode
+							</h3>
 							<p className="text-gray-400 leading-relaxed text-sm">
 								Choose your Tabspire depth. This changes visible features immediately.
 							</p>
@@ -211,7 +203,10 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 										<div className="flex items-center justify-between mb-2">
 											<span className="font-semibold text-white text-2xl">{card.name}</span>
 											{selected && (
-												<span className="text-white text-xs px-2 py-1 rounded-full" style={{ backgroundColor: card.accent }}>
+												<span
+													className="text-white text-xs px-2 py-1 rounded-full"
+													style={{ backgroundColor: card.accent }}
+												>
 													Active
 												</span>
 											)}
@@ -223,7 +218,10 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 						</div>
 
 						<div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-							<p className="text-xs font-semibold tracking-[0.1em] uppercase mb-3" style={{ color: activeCard.accent }}>
+							<p
+								className="text-xs font-semibold tracking-[0.1em] uppercase mb-3"
+								style={{ color: activeCard.accent }}
+							>
 								What’s active in {mode} mode
 							</p>
 							<div className="flex flex-wrap gap-2">
@@ -235,7 +233,9 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 											className="px-3 py-1 rounded-full text-sm border"
 											style={{
 												borderColor: active ? `${activeCard.accent}70` : "rgba(255,255,255,0.12)",
-												backgroundColor: active ? `${activeCard.accent}20` : "rgba(255,255,255,0.04)",
+												backgroundColor: active
+													? `${activeCard.accent}20`
+													: "rgba(255,255,255,0.04)",
 												color: active ? activeCard.accent : "#808795",
 											}}
 										>
@@ -255,7 +255,7 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								Choose a background, upload your own, or use a random Unsplash image.
 							</p>
 						</div>
-						
+
 						<div className="grid grid-cols-8 gap-3 mb-6">
 							{/* Built-in backgrounds */}
 							{BUILTIN_BACKGROUNDS.map((bg) => (
@@ -269,7 +269,8 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 											: "border-gray-300 hover:border-gray-400"
 									}`}
 									style={{
-										background: bg.type === "color" || bg.type === "gradient" ? bg.value : undefined,
+										background:
+											bg.type === "color" || bg.type === "gradient" ? bg.value : undefined,
 										backgroundImage: bg.type === "image" ? `url(${bg.value})` : undefined,
 										backgroundSize: "cover",
 										backgroundPosition: "center",
@@ -277,7 +278,7 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 									title={bg.type === "image" ? "Sample Image" : bg.value}
 								/>
 							))}
-							
+
 							{/* Upload button */}
 							<label className="w-14 h-14 rounded-xl border-2 border-dashed border-blue-400/70 bg-blue-500/10 hover:bg-blue-500/20 flex items-center justify-center cursor-pointer transition-all hover:scale-105 group">
 								<input
@@ -297,9 +298,11 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 										}
 									}}
 								/>
-								<span className="text-blue-300 text-2xl font-bold group-hover:text-blue-200">+</span>
+								<span className="text-blue-300 text-2xl font-bold group-hover:text-blue-200">
+									+
+								</span>
 							</label>
-							
+
 							{/* Random/Unsplash */}
 							<button
 								type="button"
@@ -314,7 +317,7 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								?
 							</button>
 						</div>
-						
+
 						{customBackground.value && (
 							<div className="inline-flex items-center gap-2 px-3 py-2 bg-blue-500/15 text-blue-300 rounded-lg text-sm font-medium border border-blue-400/30">
 								<span className="w-2 h-2 bg-blue-500 rounded-full" />
@@ -332,8 +335,8 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							</p>
 						</div>
 						<div className="relative">
-							<select 
-								value={language} 
+							<select
+								value={language}
 								onChange={(e) => onLanguageChange(e.target.value)}
 								className="w-full max-w-md px-4 py-3 bg-white/5 border border-white/15 rounded-xl text-gray-100 font-medium focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/10"
 							>
@@ -364,8 +367,19 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								<option value="twi">🇬🇭 Twi</option>
 							</select>
 							<div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-								<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+								<svg
+									className="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 9l-7 7-7-7"
+									/>
 								</svg>
 							</div>
 						</div>
@@ -380,8 +394,8 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							</p>
 						</div>
 						<div className="relative mb-6">
-							<select 
-								value={fontStyle} 
+							<select
+								value={fontStyle}
 								onChange={(e) => onFontStyleChange(e.target.value as FontStyle)}
 								className="w-full max-w-md px-4 py-3 bg-white/5 border border-white/15 rounded-xl text-gray-100 font-medium focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/10"
 							>
@@ -391,12 +405,23 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								<option value="cursive">✍️ Cursive</option>
 							</select>
 							<div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-								<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+								<svg
+									className="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 9l-7 7-7-7"
+									/>
 								</svg>
 							</div>
 						</div>
-						<div 
+						<div
 							className="p-6 bg-white/[0.03] rounded-xl border border-white/10 text-lg text-gray-100 shadow-inner"
 							style={{ fontFamily: fontStyle }}
 						>
@@ -411,7 +436,7 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							<h3 className="text-base font-semibold text-white mb-2">Voice for AI Reading</h3>
 							<p className="text-gray-400 leading-relaxed text-sm">
 								Select a voice for text-to-speech.{" "}
-								<button 
+								<button
 									type="button"
 									className="text-blue-300 hover:text-blue-200 underline font-medium transition-colors hover:bg-blue-500/10 px-2 py-1 rounded"
 									onClick={handleVoicePreview}
@@ -421,9 +446,12 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							</p>
 						</div>
 						<div className="relative">
-							<select 
-								value={selectedVoice} 
-								onChange={(e) => { onVoiceChange(e.target.value); setPreviewVoice(e.target.value); }}
+							<select
+								value={selectedVoice}
+								onChange={(e) => {
+									onVoiceChange(e.target.value);
+									setPreviewVoice(e.target.value);
+								}}
 								className="w-full max-w-md px-4 py-3 bg-white/5 border border-white/15 rounded-xl text-gray-100 font-medium focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/10"
 							>
 								{voices.map((voice) => (
@@ -433,8 +461,19 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								))}
 							</select>
 							<div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-								<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+								<svg
+									className="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 9l-7 7-7-7"
+									/>
 								</svg>
 							</div>
 						</div>
@@ -449,8 +488,8 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							</p>
 						</div>
 						<div className="relative">
-							<select 
-								value={theme} 
+							<select
+								value={theme}
 								onChange={(e) => onThemeChange(e.target.value as ThemeType)}
 								className="w-full max-w-md px-4 py-3 bg-white/5 border border-white/15 rounded-xl text-gray-100 font-medium focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/10"
 							>
@@ -458,8 +497,19 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								<option value="full">🌟 Full</option>
 							</select>
 							<div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-								<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+								<svg
+									className="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 9l-7 7-7-7"
+									/>
 								</svg>
 							</div>
 						</div>
@@ -484,7 +534,9 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 							</div>
 							<div className="flex flex-col">
 								<span className="text-gray-100 font-medium">Show date & time</span>
-								<span className="text-sm text-gray-400">Display current date and time on the main screen</span>
+								<span className="text-sm text-gray-400">
+									Display current date and time on the main screen
+								</span>
 							</div>
 						</label>
 					</section>
@@ -522,8 +574,19 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 									))}
 								</select>
 								<div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-									<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+									<svg
+										className="w-5 h-5 text-gray-400"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M19 9l-7 7-7-7"
+										/>
 									</svg>
 								</div>
 							</div>
@@ -536,7 +599,8 @@ const SettingsPanel: React.FC<SettingsPanelPropsUpdated> = ({
 								<h3 className="text-base font-semibold text-white">Work Mode Settings</h3>
 							</div>
 							<p className="text-gray-400 leading-relaxed text-sm">
-								Work mode features are enabled for this profile. Task planner and work nudges appear in Work/Full.
+								Work mode features are enabled for this profile. Task planner and work nudges appear
+								in Work/Full.
 							</p>
 						</section>
 					)}

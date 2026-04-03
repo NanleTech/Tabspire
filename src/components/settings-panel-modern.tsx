@@ -26,14 +26,6 @@ interface SettingsPanelProps {
 	onShowDateTimeChange: (val: boolean) => void;
 	maxPriorities: number;
 	onMaxPrioritiesChange: (val: number) => void;
-	elevenLabsVoiceId?: string;
-	onElevenLabsVoiceChange?: (voiceId: string) => void;
-}
-
-interface ElevenLabsVoice {
-	voice_id: string;
-	name: string;
-	labels?: { accent?: string };
 }
 
 const sections: Array<{ id: SectionId; label: string; hint: string }> = [
@@ -66,41 +58,14 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 	onShowDateTimeChange,
 	maxPriorities,
 	onMaxPrioritiesChange,
-	elevenLabsVoiceId,
-	onElevenLabsVoiceChange,
 }) => {
 	const [activeSection, setActiveSection] = useState<SectionId>("mode");
 	const [showSectionListMobile, setShowSectionListMobile] = useState(true);
 	const [previewVoice, setPreviewVoice] = useState(selectedVoice);
-	const [elevenLabsVoices, setElevenLabsVoices] = useState<ElevenLabsVoice[]>([]);
-	const [elevenLabsLoading, setElevenLabsLoading] = useState(false);
 
 	useEffect(() => {
 		if (!open) return;
 		setShowSectionListMobile(true);
-	}, [open]);
-
-	useEffect(() => {
-		if (!open) return;
-		const run = async () => {
-			setElevenLabsLoading(true);
-			try {
-				const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || "";
-				if (!apiBaseUrl) {
-					setElevenLabsVoices([]);
-					return;
-				}
-				const resp = await fetch(`${apiBaseUrl}/api/elevenlabs/voices`);
-				if (!resp.ok) throw new Error("Failed");
-				const data = await resp.json();
-				setElevenLabsVoices(data.voices || []);
-			} catch {
-				setElevenLabsVoices([]);
-			} finally {
-				setElevenLabsLoading(false);
-			}
-		};
-		run();
 	}, [open]);
 
 	const modeCards = useMemo(
@@ -275,22 +240,6 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 								>
 									{voices.map((voice) => (
 										<option key={voice.voiceURI} value={voice.voiceURI}>
-											{voice.name}
-										</option>
-									))}
-								</select>
-							</div>
-							<div>
-								<p className="mb-1 text-xs text-white/60">ElevenLabs voice</p>
-								<select
-									value={elevenLabsVoiceId || ""}
-									onChange={(e) => onElevenLabsVoiceChange?.(e.target.value)}
-									disabled={elevenLabsLoading || elevenLabsVoices.length === 0}
-									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white disabled:opacity-60"
-								>
-									<option value="">Default</option>
-									{elevenLabsVoices.map((voice) => (
-										<option key={voice.voice_id} value={voice.voice_id}>
 											{voice.name}
 										</option>
 									))}

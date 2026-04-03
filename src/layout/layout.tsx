@@ -21,7 +21,6 @@ interface LayoutProps {
 	fontSize: number;
 	fontStyle: FontStyle;
 	theme: ThemeType;
-	elevenLabsVoiceId: string;
 	bibleId: string;
 
 	// Data
@@ -49,7 +48,6 @@ interface LayoutProps {
 	onFontStyleChange: (style: FontStyle) => void;
 	onThemeSelect: (theme: ThemeType) => void;
 	onVoiceChange: (voiceURI: string) => void;
-	onElevenLabsVoiceChange: (voiceId: string) => void;
 	onViewChange: (view: ViewType) => void;
 	onSetBackground: (bg: string, type: BackgroundType) => void;
 	onResetBackground: () => void;
@@ -71,7 +69,6 @@ const Layout: React.FC<LayoutProps> = ({
 	fontSize,
 	fontStyle,
 	theme,
-	elevenLabsVoiceId,
 	bibleId,
 
 	// Data
@@ -99,7 +96,6 @@ const Layout: React.FC<LayoutProps> = ({
 	onFontStyleChange,
 	onThemeSelect,
 	onVoiceChange,
-	onElevenLabsVoiceChange,
 	onViewChange,
 	onSetBackground,
 	onResetBackground,
@@ -114,11 +110,9 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
 	const [showThemeModal, setShowThemeModal] = useState(false);
 
-	// Initialize audio hook with ElevenLabs API key from environment
-	const elevenLabsApiKey = process.env.REACT_APP_ELEVENLABS_API_KEY || "";
+	// Initialize audio hook with Kokoro TTS (no API key needed!)
 	const { isPlaying, isLoading, error, playText, stopAudio, clearError } = useAudio({
-		elevenLabsApiKey,
-		elevenLabsVoiceId,
+		voice: "af_heart", // Default to a pleasant female voice
 	});
 
 	const shareText = scripture ? `${scripture.text} - ${scripture.reference}` : "";
@@ -201,8 +195,6 @@ const Layout: React.FC<LayoutProps> = ({
 				onMaxPrioritiesChange={onMaxPrioritiesChange}
 				mode={mode}
 				onModeChange={onModeChange}
-				elevenLabsVoiceId={elevenLabsVoiceId}
-				onElevenLabsVoiceChange={onElevenLabsVoiceChange}
 			/>
 
 			{/* Controls */}
@@ -295,7 +287,6 @@ const Layout: React.FC<LayoutProps> = ({
 				onPlay={handleAudioPlay}
 				isPlaying={isPlaying}
 				disabled={isLoading}
-				elevenLabsVoiceId={elevenLabsVoiceId}
 				bibleId={bibleId}
 				theme={theme}
 				bookmarkLinks={bookmarkLinks}

@@ -1,142 +1,136 @@
 interface AudioServiceConfig {
-  elevenLabsApiKey: string;
-  elevenLabsVoiceId: string;
+	voice?: string; // Voice preference (for future use)
 }
 
-
-
 class AudioService {
-  private config: AudioServiceConfig;
-  private audioContext: AudioContext | null = null;
-  private currentAudio: AudioBufferSourceNode | null = null;
+	private config: AudioServiceConfig;
 
-  constructor(config: AudioServiceConfig) {
-    this.config = config;
-  }
+	constructor(config: AudioServiceConfig = {}) {
+		this.config = config;
+	}
 
-  async playText(text: string): Promise<void> {
-    try {
-      // First try ElevenLabs
-      await this.playWithElevenLabs(text);
-    } catch (error) {
-      console.warn('ElevenLabs failed, falling back to Google TTS:', error);
-      // Fallback to Google TTS
-      await this.playWithGoogleTTS(text);
-    }
-  }
+	async playText(text: string): Promise<void> {
+		// Use the Web Speech API
+		if (!("speechSynthesis" in window)) {
+			throw new Error("Speech synthesis not supported in this browser");
+		}
 
-  private async playWithElevenLabs(text: string): Promise<void> {
-    if (!this.config.elevenLabsVoiceId) {
-      throw new Error('ElevenLabs voice ID missing');
-    }
+		return new Promise((resolve, reject) => {
+			// Cancel any ongoing speech
+			speechSynthesis.cancel();
 
-    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '';
-    const response = await fetch(`${apiBaseUrl}/api/elevenlabs/tts`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: text,
-        voiceId: this.config.elevenLabsVoiceId,
-      })
-    });
+			const utterance = new SpeechSynthesisUtterance(text);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      if (response.status === 401) {
-        throw new Error('ElevenLabs API key invalid or expired');
-      }
-      if (response.status === 429) {
-        throw new Error('ElevenLabs API quota exceeded');
-      }
-      throw new Error(`ElevenLabs API error: ${errorData.detail || response.statusText}`);
-    }
+			// Get available voices and find the best human-sounding one
+			const voices = speechSynthesis.getVoices();
 
-    const audioBlob = await response.blob();
-    await this.playAudioBlob(audioBlob);
-  }
+			if (voices.length > 0) {
+				console.log("Available voices:", voices.map((v) => `${v.name} (${v.lang})`).join(", "));
 
-  private async playWithGoogleTTS(text: string): Promise<void> {
-    // Use the Web Speech API (Google TTS) as fallback
-    if ('speechSynthesis' in window) {
-      return new Promise((resolve, reject) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Get available voices and try to use a good one
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          // Try to find a voice that matches the current language or use the first available
-          const preferredVoice = voices.find(voice => 
-            voice.lang.startsWith('en') || voice.lang.startsWith('es') || voice.lang.startsWith('fr')
-          ) || voices[0];
-          
-          utterance.voice = preferredVoice;
-        }
-        
-        utterance.rate = 0.9; // Slightly slower for better clarity
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        
-        utterance.onend = () => resolve();
-        utterance.onerror = (event) => reject(new Error(`Google TTS error: ${event.error}`));
-        
-        speechSynthesis.speak(utterance);
-      });
-    }
-    throw new Error('Speech synthesis not supported in this browser');
-  }
+				// Score each voice based on quality indicators
+				const scoreVoice = (voice: SpeechSynthesisVoice): number => {
+					let score = 0;
+					const name = voice.name.toLowerCase();
+					const lang = voice.lang.toLowerCase();
 
-  private async playAudioBlob(audioBlob: Blob): Promise<void> {
-    // Convert blob to audio buffer and play
-    const arrayBuffer = await audioBlob.arrayBuffer();
-    
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-    
-    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-    
-    if (this.currentAudio) {
-      this.currentAudio.stop();
-      this.currentAudio.disconnect();
-    }
-    
-    this.currentAudio = this.audioContext.createBufferSource();
-    this.currentAudio.buffer = audioBuffer;
-    this.currentAudio.connect(this.audioContext.destination);
-    
-    return new Promise((resolve, reject) => {
-      if (this.currentAudio) {
-        this.currentAudio.onended = () => resolve();
-        // AudioBufferSourceNode doesn't have onerror, so we'll just resolve
-        this.currentAudio.start(0);
-      }
-    });
-  }
+					// Prefer English voices
+					if (lang.startsWith("en")) score += 10;
 
-  stop(): void {
-    if (this.currentAudio) {
-      this.currentAudio.stop();
-      this.currentAudio.disconnect();
-      this.currentAudio = null;
-    }
-    
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
-    }
-    
-    // Stop any ongoing speech synthesis
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-    }
-  }
+					// PREMIUM QUALITY - Highest priority
+					if (name.includes("premium")) score += 50;
+					if (name.includes("enhanced")) score += 45;
+					if (name.includes("natural")) score += 40;
+					if (name.includes("neural")) score += 40;
+					if (name.includes("hd")) score += 35;
+					if (name.includes("high quality")) score += 35;
 
-  isPlaying(): boolean {
-    return this.currentAudio !== null || speechSynthesis.speaking;
-  }
+					// Top-tier premium voices by name
+					if (name.includes("samantha")) score += 50; // Apple's premium voice
+					if (name.includes("google") && name.includes("us")) score += 45;
+					if (name.includes("zira")) score += 40; // Microsoft premium
+					if (name.includes("ava")) score += 40; // Apple premium
+					if (name.includes("allison")) score += 38; // Apple premium
+
+					// Prefer Google, Microsoft, or Apple voices
+					if (name.includes("google")) score += 25;
+					if (name.includes("microsoft")) score += 20;
+					if (name.includes("apple")) score += 18;
+
+					// Female voices (often more pleasant for narration)
+					if (
+						name.includes("female") ||
+						name.includes("samantha") ||
+						name.includes("zira") ||
+						name.includes("susan") ||
+						name.includes("karen") ||
+						name.includes("moira") ||
+						name.includes("tessa") ||
+						name.includes("ava") ||
+						name.includes("allison") ||
+						name.includes("victoria") ||
+						name.includes("hazel")
+					)
+						score += 12;
+
+					// Prefer local voices (better quality, faster)
+					if (voice.localService) score += 10;
+
+					// US English preferred over other English variants
+					if (lang.includes("en-us")) score += 8;
+					if (lang.includes("en-gb")) score += 5; // British is second preference
+
+					return score;
+				};
+
+				// Find the best voice
+				const rankedVoices = voices
+					.map((voice) => ({ voice, score: scoreVoice(voice) }))
+					.sort((a, b) => b.score - a.score);
+
+				const bestVoice = rankedVoices[0].voice;
+				utterance.voice = bestVoice;
+
+				console.log(
+					`Selected voice: ${bestVoice.name} (${bestVoice.lang}) with score ${rankedVoices[0].score}`,
+				);
+				console.log(
+					"Top 3 voices:",
+					rankedVoices
+						.slice(0, 3)
+						.map((r) => `${r.voice.name} (score: ${r.score})`)
+						.join(", "),
+				);
+			}
+
+			utterance.rate = 0.9; // Slightly slower for better clarity
+			utterance.pitch = 1.0;
+			utterance.volume = 1.0;
+
+			utterance.onend = () => resolve();
+			utterance.onerror = (event) => {
+				console.error("Web Speech API error:", event);
+				reject(new Error(`Web Speech API error: ${event.error}`));
+			};
+
+			speechSynthesis.speak(utterance);
+		});
+	}
+
+	stop(): void {
+		// Stop Web Speech API if it's speaking
+		if ("speechSynthesis" in window && speechSynthesis.speaking) {
+			speechSynthesis.cancel();
+		}
+	}
+
+	isPlaying(): boolean {
+		return "speechSynthesis" in window && speechSynthesis.speaking;
+	}
+
+	// Update voice preference
+	setVoice(voice: string): void {
+		this.config.voice = voice;
+	}
 }
 
 export default AudioService;
