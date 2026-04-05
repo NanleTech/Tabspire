@@ -41,6 +41,14 @@ interface WisdomCardProps {
 	className?: string;
 }
 
+interface DayEventCardProps {
+	title: string;
+	tag: string;
+	message: string;
+	whyItIsCelebrated: string;
+	className?: string;
+}
+
 export const ModeContainer: React.FC<ModeContainerProps> = ({ children }) => (
 	<div className="mx-auto w-full max-w-3xl animate-fade-in overflow-x-hidden px-2 pb-14 pt-1 text-white md:pb-10">
 		{children}
@@ -110,6 +118,25 @@ export const WisdomCard: React.FC<WisdomCardProps> = ({
 		</p>
 		<p className="text-base leading-relaxed text-white/90 md:text-xl">“{text}”</p>
 		<p className="mt-1 text-xs text-white/70 md:text-sm">{reference}</p>
+	</GlassCard>
+);
+
+export const DayEventCard: React.FC<DayEventCardProps> = ({
+	title,
+	tag,
+	message,
+	whyItIsCelebrated,
+	className = "",
+}) => (
+	<GlassCard className={className}>
+		<div className="mb-1.5 flex items-center justify-between gap-2">
+			<p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-100/95 md:text-xs">
+				{tag}
+			</p>
+			<p className="text-[11px] font-medium text-amber-100/80">{title}</p>
+		</div>
+		<p className="text-sm text-white/90 md:text-base">{message}</p>
+		<p className="mt-1.5 text-xs text-white/70 md:text-sm">{whyItIsCelebrated}</p>
 	</GlassCard>
 );
 

@@ -5,6 +5,7 @@ import { getMoodVerseForDay, type MoodId, moodOptions } from "../data/mood-verse
 import { usePersistedState } from "../hooks/use-persisted-state";
 import { useWindowSize } from "../hooks/use-window-size";
 import type { Scripture } from "../types";
+import DayEventBanner from "./day-event-banner";
 import { AnchorCard, FeatureCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
 
 interface SimpleModeViewProps {
@@ -113,6 +114,8 @@ const SimpleModeView: React.FC<SimpleModeViewProps> = ({
 					<span className="capitalize">{selectedMoodMeta.label}</span>
 				</button>
 			</div>
+
+			<DayEventBanner />
 
 			<GlassCard>
 				<div className="mb-2.5 flex items-center justify-between">

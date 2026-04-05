@@ -5,6 +5,7 @@ import { getMoodVerseForDay, type MoodId, moodOptions } from "../data/mood-verse
 import { usePersistedState } from "../hooks/use-persisted-state";
 import { useWindowSize } from "../hooks/use-window-size";
 import type { Scripture } from "../types";
+import DayEventBanner from "./day-event-banner";
 import { AnchorCard, FeatureCard, GlassCard, ModeContainer, ModeIntro } from "./mode-view-shared";
 import { WorkPrioritiesCard } from "./work-priorities/priorities-card";
 import { useWorkPriorities } from "./work-priorities/use-work-priorities";
@@ -135,6 +136,8 @@ const FullModeView: React.FC<FullModeViewProps> = ({
 					<span className="capitalize">{selectedMoodMeta.label}</span>
 				</button>
 			</div>
+
+			<DayEventBanner />
 
 			<button type="button" onClick={() => setIsJournalOpen(true)} className="w-full text-left">
 				<GlassCard className="border-violet-300/25 bg-violet-500/10 text-left">

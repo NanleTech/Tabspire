@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./app.css";
 import ModeSelector from "./components/mode-selector";
+import { USER_CUSTOM_EVENTS_STORAGE_KEY, type UserCustomEvent } from "./data/events.data";
 import {
 	type BackgroundType,
 	type FontStyle,
@@ -77,6 +78,19 @@ function App() {
 	const [showDateTime, setShowDateTime] = useState(() => {
 		const stored = localStorage.getItem("tabspire_show_datetime");
 		return stored === null ? true : stored === "true";
+	});
+	const [birthday, setBirthday] = useState(
+		() => localStorage.getItem("tabspire_user_birthday") || "",
+	);
+	const [customEvents, setCustomEvents] = useState<UserCustomEvent[]>(() => {
+		try {
+			const raw = localStorage.getItem(USER_CUSTOM_EVENTS_STORAGE_KEY);
+			if (!raw) return [];
+			const parsed = JSON.parse(raw);
+			return Array.isArray(parsed) ? (parsed as UserCustomEvent[]) : [];
+		} catch {
+			return [];
+		}
 	});
 
 	// Background state
@@ -166,6 +180,24 @@ function App() {
 		const clamped = Math.max(1, Math.min(5, val));
 		setMaxPriorities(clamped);
 		localStorage.setItem("tabspire_max_priorities", String(clamped));
+	};
+
+	const handleBirthdayChange = (value: string) => {
+		setBirthday(value);
+		if (value) {
+			localStorage.setItem("tabspire_user_birthday", value);
+		} else {
+			localStorage.removeItem("tabspire_user_birthday");
+		}
+	};
+
+	const handleCustomEventsChange = (value: UserCustomEvent[]) => {
+		setCustomEvents(value);
+		try {
+			localStorage.setItem(USER_CUSTOM_EVENTS_STORAGE_KEY, JSON.stringify(value));
+		} catch {
+			// no-op
+		}
 	};
 
 	const handleModeChange = (nextMode: ModeType) => {
@@ -278,6 +310,8 @@ function App() {
 				selectedVoice={selectedVoice}
 				settingsPanelOpen={settingsPanelOpen}
 				showDateTime={showDateTime}
+				birthday={birthday}
+				customEvents={customEvents}
 				maxPriorities={maxPriorities}
 				mode={mode}
 				// Handlers
@@ -293,6 +327,8 @@ function App() {
 				onResetBackground={handleResetBackground}
 				onUploadBackground={handleUploadBackground}
 				onShowDateTimeChange={handleShowDateTimeChange}
+				onBirthdayChange={handleBirthdayChange}
+				onCustomEventsChange={handleCustomEventsChange}
 				onMaxPrioritiesChange={handleMaxPrioritiesChange}
 				onModeChange={handleModeChange}
 				onToggleHistoryPanel={() => setShowHistoryPanel((v) => !v)}

@@ -3,6 +3,7 @@ import Controls from "../components/controls";
 import HistoryPanel from "../components/history-panel";
 import SettingsPanel from "../components/settings-panel-modern";
 import ThemeSelectModal from "../components/theme-select-modal";
+import type { UserCustomEvent } from "../data/events.data";
 import type { BackgroundType, FontStyle, ThemeType, ViewType } from "../enums";
 import { useAudio } from "../hooks/use-audio";
 import icon from "../icon.svg";
@@ -37,6 +38,8 @@ interface LayoutProps {
 	selectedVoice: string;
 	settingsPanelOpen: boolean;
 	showDateTime: boolean;
+	birthday: string;
+	customEvents: UserCustomEvent[];
 	maxPriorities: number;
 	mode: ModeType;
 
@@ -53,6 +56,8 @@ interface LayoutProps {
 	onResetBackground: () => void;
 	onUploadBackground: (file: File) => void;
 	onShowDateTimeChange: (val: boolean) => void;
+	onBirthdayChange: (value: string) => void;
+	onCustomEventsChange: (value: UserCustomEvent[]) => void;
 	onMaxPrioritiesChange: (val: number) => void;
 	onModeChange: (mode: ModeType) => void;
 	onToggleHistoryPanel: () => void;
@@ -85,6 +90,8 @@ const Layout: React.FC<LayoutProps> = ({
 	selectedVoice,
 	settingsPanelOpen,
 	showDateTime,
+	birthday,
+	customEvents,
 	maxPriorities,
 	mode,
 
@@ -101,6 +108,8 @@ const Layout: React.FC<LayoutProps> = ({
 	onResetBackground,
 	onUploadBackground,
 	onShowDateTimeChange,
+	onBirthdayChange,
+	onCustomEventsChange,
 	onMaxPrioritiesChange,
 	onModeChange,
 	onToggleHistoryPanel,
@@ -191,6 +200,10 @@ const Layout: React.FC<LayoutProps> = ({
 				onUploadBackground={onUploadBackground}
 				showDateTime={showDateTime}
 				onShowDateTimeChange={onShowDateTimeChange}
+				birthday={birthday}
+				onBirthdayChange={onBirthdayChange}
+				customEvents={customEvents}
+				onCustomEventsChange={onCustomEventsChange}
 				maxPriorities={maxPriorities}
 				onMaxPrioritiesChange={onMaxPrioritiesChange}
 				mode={mode}

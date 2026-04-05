@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { type MoodId, moodOptions } from "../../data/mood-verse-library";
 import { usePersistedState } from "../../hooks/use-persisted-state";
 import type { Scripture } from "../../types";
+import DayEventBanner from "../day-event-banner";
 import {
 	AnchorCard,
 	FeatureCard,
@@ -180,6 +181,8 @@ const WorkModeView: React.FC<WorkModeViewProps> = ({
 					<span className="capitalize">{simpleMoodMeta.label}</span>
 				</button>
 			</div>
+
+			<DayEventBanner date={date} />
 
 			<FeatureCard
 				title="Journal"

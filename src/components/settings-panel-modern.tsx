@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { UserCustomEvent } from "../data/events.data";
 import { BUILTIN_BACKGROUNDS, type FontStyle, SAMPLE_VERSE, type ThemeType } from "../enums";
 
 type ModeType = "simple" | "work" | "full";
@@ -26,6 +27,10 @@ interface SettingsPanelProps {
 	onShowDateTimeChange: (val: boolean) => void;
 	maxPriorities: number;
 	onMaxPrioritiesChange: (val: number) => void;
+	birthday: string;
+	onBirthdayChange: (value: string) => void;
+	customEvents: UserCustomEvent[];
+	onCustomEventsChange: (value: UserCustomEvent[]) => void;
 }
 
 const sections: Array<{ id: SectionId; label: string; hint: string }> = [
@@ -58,10 +63,16 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 	onShowDateTimeChange,
 	maxPriorities,
 	onMaxPrioritiesChange,
+	birthday,
+	onBirthdayChange,
+	customEvents,
+	onCustomEventsChange,
 }) => {
 	const [activeSection, setActiveSection] = useState<SectionId>("mode");
 	const [showSectionListMobile, setShowSectionListMobile] = useState(true);
 	const [previewVoice, setPreviewVoice] = useState(selectedVoice);
+	const [customEventTitle, setCustomEventTitle] = useState("");
+	const [customEventDate, setCustomEventDate] = useState("");
 
 	useEffect(() => {
 		if (!open) return;
@@ -94,6 +105,36 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 	};
 
 	const renderSection = () => {
+		const addCustomEvent = () => {
+			const title = customEventTitle.trim();
+			if (!title || !customEventDate) return;
+
+			const [yearPart, monthPart, dayPart] = customEventDate.split("-");
+			const month = Number.parseInt(monthPart || "", 10);
+			const day = Number.parseInt(dayPart || "", 10);
+			if (!yearPart || !Number.isFinite(month) || !Number.isFinite(day)) return;
+
+			const normalizedId = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${month}-${day}`;
+			const nextEvents = [
+				...customEvents.filter((eventItem) => eventItem.id !== normalizedId),
+				{
+					id: normalizedId,
+					title,
+					month,
+					day,
+					showConfetti: true,
+				},
+			];
+
+			onCustomEventsChange(nextEvents);
+			setCustomEventTitle("");
+			setCustomEventDate("");
+		};
+
+		const removeCustomEvent = (id: string) => {
+			onCustomEventsChange(customEvents.filter((eventItem) => eventItem.id !== id));
+		};
+
 		switch (activeSection) {
 			case "mode":
 				return (
@@ -283,6 +324,77 @@ const SettingsPanelModern: React.FC<SettingsPanelProps> = ({
 								/>
 								Show date and time
 							</label>
+						</div>
+						<div className="rounded-xl border border-white/20 bg-black/30 px-3 py-3">
+							<p className="mb-1 text-xs text-white/60">Birthday</p>
+							<div className="flex items-center gap-2">
+								<input
+									type="date"
+									value={birthday}
+									onChange={(event) => onBirthdayChange(event.target.value)}
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								/>
+								<button
+									type="button"
+									onClick={() => onBirthdayChange("")}
+									className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-xs font-semibold text-white/85"
+								>
+									Clear
+								</button>
+							</div>
+							<p className="mt-1 text-xs text-white/55">
+								Used for your personal birthday celebration in events.
+							</p>
+						</div>
+						<div className="rounded-xl border border-white/20 bg-black/30 px-3 py-3">
+							<p className="mb-1 text-xs text-white/60">Custom events</p>
+							<div className="grid gap-2 md:grid-cols-[1fr,180px,auto]">
+								<input
+									type="text"
+									value={customEventTitle}
+									onChange={(event) => setCustomEventTitle(event.target.value)}
+									placeholder="Event title (e.g. Family Day)"
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								/>
+								<input
+									type="date"
+									value={customEventDate}
+									onChange={(event) => setCustomEventDate(event.target.value)}
+									className="w-full rounded-xl border border-white/20 bg-black/35 px-3 py-2 text-sm text-white"
+								/>
+								<button
+									type="button"
+									onClick={addCustomEvent}
+									className="rounded-xl border border-emerald-300/35 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-100"
+								>
+									Add event
+								</button>
+							</div>
+							{customEvents.length > 0 && (
+								<div className="mt-3 space-y-1.5">
+									{customEvents.map((eventItem) => (
+										<div
+											key={eventItem.id}
+											className="flex items-center justify-between rounded-lg border border-white/15 bg-white/[0.03] px-2.5 py-1.5"
+										>
+											<p className="text-xs text-white/85">
+												{eventItem.title} · {String(eventItem.month).padStart(2, "0")}/
+												{String(eventItem.day).padStart(2, "0")}
+											</p>
+											<button
+												type="button"
+												onClick={() => removeCustomEvent(eventItem.id)}
+												className="rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-[11px] text-white/80"
+											>
+												Remove
+											</button>
+										</div>
+									))}
+								</div>
+							)}
+							<p className="mt-1 text-xs text-white/55">
+								Add recurring custom dates for birthdays, anniversaries, and ministry milestones.
+							</p>
 						</div>
 						{mode === "work" && (
 							<div className="rounded-xl border border-emerald-300/20 bg-emerald-500/5 p-3">
